@@ -19,9 +19,9 @@ class MainController extends AbstractController
 
     /**
      * @Route("/game/{id}", name="game")
-     * @param string $id
+     * @param $id
      */
-    public function game(string $id)
+    public function game($id)
     {
         $params = [
             'index' => 'steam',
@@ -35,12 +35,20 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/games", name="games")
+     * @Route("/games/{page}", name="games")
+     * @param int $page
+     * @return JsonResponse
      */
-    public function games()
+    public function games(int $page)
     {
+        if ($page < 1) {
+            $page = 1;
+        }
         $params = [
             'index' => 'steam',
+            'size' => 8,
+            'from' => $page
+
         ];
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
