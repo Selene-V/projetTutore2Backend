@@ -1,0 +1,8 @@
+*.ini
+conf\
+.DS_Store
+.idea
+node_modules/
+.vs
+/vscode
+.idea
