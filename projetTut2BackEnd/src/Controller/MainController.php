@@ -19,8 +19,9 @@ class MainController extends AbstractController
     /**
      * @Route("/game/{id}", name="game", methods={"GET"})
      * @param string $id
+     * @return JsonResponse
      */
-    public function game(string $id)
+    public function game(string $id): JsonResponse
     {
         $params = [
             'index' => 'steam',
@@ -30,7 +31,8 @@ class MainController extends AbstractController
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
         $result = $client->get($params);
-        //dd($result);
+
+        return new JsonResponse($result);
     }
 
     /**
@@ -38,7 +40,7 @@ class MainController extends AbstractController
      * @param int $page
      * @return JsonResponse
      */
-    public function games(int $page)
+    public function games(int $page): JsonResponse
     {
         if ($page < 1) {
             $page = 1;
@@ -54,16 +56,15 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        //dd($result);
-
         return new JsonResponse($result);
     }
 
     /**
-     * @Route("/gameByName/{name}", name="gameByName")
+     * @Route("/gameByName/{name}", name="gameByName", methods={"GET"})
      * @param string $name
+     * @return JsonResponse
      */
-    public function gameByName(string $name)
+    public function gameByName(string $name): JsonResponse
     {
         $params = [
             'index' => 'steam',
@@ -86,8 +87,9 @@ class MainController extends AbstractController
     /**
      * @Route("/game/{appid}/images", name="images_game", methods={"GET"})
      * @param string $appid
+     * @return JsonResponse
      */
-    public function images(string $appid)
+    public function images(string $appid): JsonResponse
     {
         $params = [
             'index' => 'steam_media_data',
