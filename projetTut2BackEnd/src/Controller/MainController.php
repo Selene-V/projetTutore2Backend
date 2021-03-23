@@ -54,9 +54,33 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        return new JsonResponse($result);
-
         //dd($result);
+
+        return new JsonResponse($result);
+    }
+
+    /**
+     * @Route("/gameByName/{name}", name="gameByName")
+     * @param string $name
+     */
+    public function gameByName(string $name)
+    {
+        $params = [
+            'index' => 'steam',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.name' => $name
+                    ]
+                ],
+            ],
+        ];
+
+        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+
+        $result = $client->search($params);
+
+        return new JsonResponse($result);
     }
 
     /**
