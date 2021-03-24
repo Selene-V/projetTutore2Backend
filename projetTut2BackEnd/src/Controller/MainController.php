@@ -2,18 +2,32 @@
 
 namespace App\Controller;
 
+use App\Entity\Game;
+use App\Entity\Image;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class MainController extends AbstractController
 {
+    private $encoders;
+    private $normalizers;
+    private $serializer;
+
     /**
      * MainController constructor.
      */
     public function __construct()
     {
+        $this->encoders = [new XmlEncoder(), new JsonEncoder()];
+        $this->normalizers = [new ObjectNormalizer()];
+
+        $this->serializer = new Serializer($this->normalizers, $this->encoders);
     }
 
     /**
@@ -63,11 +77,19 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        $images = $this->images();
+        $games = [];
+        foreach ($result['hits']['hits'] as $gameInfos){
+            $idgame = $gameInfos['_source']['data']['appid'];
+            $image = new Image();
+            $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
 
-        array_push($result, ['images' => json_decode($images->getContent())]);
-
-        return new JsonResponse($result);
+            $game = new Game();
+            $game->hydrate($gameInfos['_source']['data']);
+            $game->setImage($image);
+            array_push($games, $this->serializer->serialize($game, 'json'));
+        }
+        return new JsonResponse($games);
     }
 
     /**
