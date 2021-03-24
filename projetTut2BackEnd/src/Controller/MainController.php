@@ -56,7 +56,10 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        array_push($result, ['images' => json_decode($this->images())]);
+        $images = $this->images();
+
+        array_push($result, ['images' => json_decode($images->getContent())]);
+
         return new JsonResponse($result);
     }
 
