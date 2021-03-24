@@ -34,7 +34,10 @@ class MainController extends AbstractController
 
         $images = $this->imagesByGame($result['_source']['data']['appid']);
 
+        $descriptions = $this->descriptionsByGame($result['_source']['data']['appid']);
+
         array_push($result, ['images' => json_decode($images->getContent())]);
+        array_push($result, ['descriptions' => json_decode($descriptions->getContent())]);
 
         return new JsonResponse($result);
     }
@@ -118,6 +121,31 @@ class MainController extends AbstractController
     {
         $params = [
             'index' => 'steam_media_data',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.steam_appid' => $appid
+                    ]
+                ]
+            ]
+        ];
+
+        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+
+        $results = $client->search($params);
+
+        return new JsonResponse($results);
+    }
+
+    /**
+     * @Route("/game/{appid}/descriptions", name="images_by_game", methods={"GET"})
+     * @param string $appid
+     * @return JsonResponse
+     */
+    public function descriptionsByGame(string $appid) : JsonResponse
+    {
+        $params = [
+            'index' => 'steam_description_data',
             'body' => [
                 'query' => [
                     'match' => [
