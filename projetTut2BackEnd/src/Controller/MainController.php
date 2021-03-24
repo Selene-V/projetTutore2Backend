@@ -125,6 +125,7 @@ class MainController extends AbstractController
     {
         $params = [
             'index' => 'steam_media_data',
+            'size' => 8,
         ];
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
@@ -164,10 +165,39 @@ class MainController extends AbstractController
      * @param string $appid
      * @return JsonResponse
      */
-    public function descriptionsByGame(string $appid) : JsonResponse
+    public function descriptionsByGame(string $appid): JsonResponse
     {
         $params = [
             'index' => 'steam_description_data',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.steam_appid' => $appid
+                    ]
+                ]
+            ]
+        ];
+
+        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+
+        $results = $client->search($params);
+
+        return new JsonResponse($results);
+    }
+
+    /**
+     * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
+     * @param string $publisher
+     * @param string $producer
+     * @return JsonResponse
+     */
+    public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
+    {
+
+        dd($publisher);
+
+        $params = [
+            'index' => 'steam_media_data',
             'body' => [
                 'query' => [
                     'match' => [
