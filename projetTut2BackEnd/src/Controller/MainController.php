@@ -110,8 +110,6 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        dd($result);
-
         return new JsonResponse($result);
     }
 
