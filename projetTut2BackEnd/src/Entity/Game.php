@@ -110,11 +110,11 @@ class Game
     }
 
     /**
-     * @return DateTime|null
+     * @return string
      */
-    public function getReleaseDate(): ?DateTime
+    public function getReleaseDate(): string
     {
-        return $this->releaseDate;
+        return $this->releaseDate->format('Y-m-d');
     }
 
     /**
