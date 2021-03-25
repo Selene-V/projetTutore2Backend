@@ -16,9 +16,9 @@ use Symfony\Component\Serializer\Serializer;
 
 class MainController extends AbstractController
 {
-    private $encoders;
-    private $normalizers;
-    private $serializer;
+    private array $encoders;
+    private array $normalizers;
+    private Serializer $serializer;
 
     /**
      * MainController constructor.
@@ -42,19 +42,29 @@ class MainController extends AbstractController
             'index' => 'steam',
             'id' => $id
         ];
-
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
         $result = $client->get($params);
 
-        $images = $this->imagesByGame($result['_source']['data']['appid']);
+        $idgame = $result['_source']['data']['appid'];
 
-        $descriptions = $this->descriptionsByGame($result['_source']['data']['appid']);
+        $image = new Image();
+        $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+        $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+        $image->setId($imageData['hits']['hits'][0]['_id']);
 
-        array_push($result, ['images' => json_decode($images->getContent())]);
-        array_push($result, ['descriptions' => json_decode($descriptions->getContent())]);
+        $description = new Description();
+        $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
+        $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+        $description->setId($descriptionData['hits']['hits'][0]['_id']);
 
-        return new JsonResponse($result);
+        $game = new Game();
+        $game->hydrate($result['_source']['data']);
+        $game->setImage($image);
+        $game->setDescription($description);
+        $game->setId($result['_id']);
+
+        return new JsonResponse(json_decode($this->serializer->serialize($game, 'json')));
     }
 
     /**
@@ -124,26 +134,48 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        return new JsonResponse($result);
+        $games = [];
+        foreach ($result['hits']['hits'] as $gameInfos){
+            $idgame = $gameInfos['_source']['data']['appid'];
+
+            $image = new Image();
+            $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+            var_dump($imageData['hits']['hits'][0]);
+            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+            $image->setId($imageData['hits']['hits'][0]['_id']);
+
+            $description = new Description();
+            $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
+            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+            $description->setId($descriptionData['hits']['hits'][0]['_id']);
+
+            $game = new Game();
+            $game->hydrate($gameInfos['_source']['data']);
+            $game->setImage($image);
+            $game->setDescription($description);
+            $game->setId($gameInfos['_id']);
+            array_push($games, json_decode($this->serializer->serialize($game, 'json')));
+        }
+        return new JsonResponse($games);
     }
 
-    /**
-     * @Route("/games/images", name="images_games", methods={"GET"})
-     * @return JsonResponse
-     */
-    public function images(): JsonResponse
-    {
-        $params = [
-            'index' => 'steam_media_data',
-            'size' => 8,
-        ];
-
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $result = $client->search($params);
-
-        return new JsonResponse($result);
-    }
+//    /**
+//     * @Route("/games/images", name="images_games", methods={"GET"})
+//     * @return JsonResponse
+//     */
+//    public function images(): JsonResponse
+//    {
+//        $params = [
+//            'index' => 'steam_media_data',
+//            'size' => 8,
+//        ];
+//
+//        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+//
+//        $result = $client->search($params);
+//
+//        return new JsonResponse($result);
+//    }
 
     /**
      * @Route("/game/{appid}/images", name="images_by_game", methods={"GET"})
@@ -195,32 +227,32 @@ class MainController extends AbstractController
         return new JsonResponse($results);
     }
 
-    /**
-     * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
-     * @param string $publisher
-     * @param string $producer
-     * @return JsonResponse
-     */
-    public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
-    {
-
-        dd($publisher);
-
-        $params = [
-            'index' => 'steam_media_data',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'data.steam_appid' => $appid
-                    ]
-                ]
-            ]
-        ];
-
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $results = $client->search($params);
-
-        return new JsonResponse($results);
-    }
+//    /**
+//     * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
+//     * @param string|null $publisher
+//     * @param string $producer
+//     * @return JsonResponse
+//     */
+//    public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
+//    {
+//
+//        dd($publisher);
+//
+//        $params = [
+//            'index' => 'steam_media_data',
+//            'body' => [
+//                'query' => [
+//                    'match' => [
+//                        'data.steam_appid' => $appid
+//                    ]
+//                ]
+//            ]
+//        ];
+//
+//        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+//
+//        $results = $client->search($params);
+//
+//        return new JsonResponse($results);
+//    }
 }
