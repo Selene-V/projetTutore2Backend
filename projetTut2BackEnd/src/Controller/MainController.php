@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Game;
 use App\Entity\Image;
+use App\Entity\Description;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
@@ -80,14 +81,23 @@ class MainController extends AbstractController
         $games = [];
         foreach ($result['hits']['hits'] as $gameInfos){
             $idgame = $gameInfos['_source']['data']['appid'];
+
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
             $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+            $image->setId($imageData['hits']['hits'][0]['_id']);
+
+            $description = new Description();
+            $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
+            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+            $description->setId($descriptionData['hits']['hits'][0]['_id']);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
             $game->setImage($image);
-            array_push($games, $this->serializer->serialize($game, 'json'));
+            $game->setDescription($description);
+            $game->setId($gameInfos['_id']);
+            array_push($games, json_decode($this->serializer->serialize($game, 'json')));
         }
         return new JsonResponse($games);
     }

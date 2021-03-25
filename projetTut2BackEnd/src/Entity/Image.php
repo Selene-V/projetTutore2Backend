@@ -5,55 +5,52 @@ namespace App\Entity;
 use App\Repository\ImageRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ImageRepository::class)
- */
 class Image
 {
     use HydrationTrait;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    private ?string $id = null;
+
+    private ?int $steamAppid = null;
+
+    private ?string $headerImage = null;
+
+    private ?string $screenshots = null;
+
+    private ?string $background = null;
+
+    private ?string $movies = null;
 
     /**
-     * @ORM\Column(type="integer")
+     * @return string|null
      */
-    private $steamAppid;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $headerImage;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $screenshots;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $background;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $movies;
-
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }
 
+    /**
+     * @param string $id
+     * @return $this
+     */
+    public function setId(string $id): self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
     public function getSteamAppid(): ?int
     {
         return $this->steamAppid;
     }
 
+    /**
+     * @param int $steamAppid
+     * @return $this
+     */
     public function setSteamAppid(int $steamAppid): self
     {
         $this->steamAppid = $steamAppid;
@@ -61,11 +58,18 @@ class Image
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getHeaderImage(): ?string
     {
         return $this->headerImage;
     }
 
+    /**
+     * @param string $headerImage
+     * @return $this
+     */
     public function setHeaderImage(string $headerImage): self
     {
         $this->headerImage = $headerImage;
@@ -73,11 +77,18 @@ class Image
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getScreenshots(): ?string
     {
         return $this->screenshots;
     }
 
+    /**
+     * @param string $screenshots
+     * @return $this
+     */
     public function setScreenshots(string $screenshots): self
     {
         $this->screenshots = $screenshots;
@@ -85,11 +96,18 @@ class Image
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getBackground(): ?string
     {
         return $this->background;
     }
 
+    /**
+     * @param string $background
+     * @return $this
+     */
     public function setBackground(string $background): self
     {
         $this->background = $background;
@@ -97,11 +115,18 @@ class Image
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getMovies(): ?string
     {
         return $this->movies;
     }
 
+    /**
+     * @param string $movies
+     * @return $this
+     */
     public function setMovies(string $movies): self
     {
         $this->movies = $movies;
