@@ -2,10 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\GameRepository;
 use DateTime;
-use Doctrine\ORM\Mapping as ORM;
-
 
 class Game
 {

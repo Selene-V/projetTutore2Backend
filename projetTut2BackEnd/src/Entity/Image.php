@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\ImageRepository;
-use Doctrine\ORM\Mapping as ORM;
 
 class Image
 {
@@ -15,11 +13,11 @@ class Image
 
     private ?string $headerImage = null;
 
-    private ?string $screenshots = null;
+    private ?array $screenshots = null;
 
     private ?string $background = null;
 
-    private ?string $movies = null;
+    private ?array $movies = null;
 
     /**
      * @return string|null
@@ -78,18 +76,18 @@ class Image
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getScreenshots(): ?string
+    public function getScreenshots(): ?array
     {
         return $this->screenshots;
     }
 
     /**
-     * @param string $screenshots
+     * @param array|null $screenshots
      * @return $this
      */
-    public function setScreenshots(string $screenshots): self
+    public function setScreenshots(?array $screenshots): self
     {
         $this->screenshots = $screenshots;
 
@@ -116,18 +114,18 @@ class Image
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getMovies(): ?string
+    public function getMovies(): ?array
     {
         return $this->movies;
     }
 
     /**
-     * @param string $movies
+     * @param array|null $movies
      * @return $this
      */
-    public function setMovies(string $movies): self
+    public function setMovies(?array $movies): self
     {
         $this->movies = $movies;
 

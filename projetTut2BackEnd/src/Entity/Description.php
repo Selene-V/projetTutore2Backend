@@ -2,9 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\DescriptionRepository;
-use Doctrine\ORM\Mapping as ORM;
-
 class Description
 {
     use HydrationTrait;

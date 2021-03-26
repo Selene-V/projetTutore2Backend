@@ -13,6 +13,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use function MongoDB\BSON\toJSON;
 
 class MainController extends AbstractController
 {
@@ -50,6 +51,8 @@ class MainController extends AbstractController
 
         $image = new Image();
         $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+        $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+        $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
         $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
         $image->setId($imageData['hits']['hits'][0]['_id']);
 
@@ -80,7 +83,7 @@ class MainController extends AbstractController
         $params = [
             'index' => 'steam',
             'size' => 8,
-            'from' => $page
+            'from' => ($page-1)*8
 
         ];
 
@@ -94,6 +97,8 @@ class MainController extends AbstractController
 
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
             $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
             $image->setId($imageData['hits']['hits'][0]['_id']);
 
@@ -140,6 +145,8 @@ class MainController extends AbstractController
 
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
             $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
             $image->setId($imageData['hits']['hits'][0]['_id']);
 

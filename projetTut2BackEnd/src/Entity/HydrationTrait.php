@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 use DateTime;
-use Exception;
 
 trait HydrationTrait
 {
