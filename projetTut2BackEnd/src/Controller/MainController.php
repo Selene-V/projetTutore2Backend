@@ -52,7 +52,10 @@ class MainController extends AbstractController
         $image = new Image();
         $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
         $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-        $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+        $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+        $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+        $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+
         $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
         $image->setId($imageData['hits']['hits'][0]['_id']);
 
@@ -98,7 +101,9 @@ class MainController extends AbstractController
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
             $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
             $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
             $image->setId($imageData['hits']['hits'][0]['_id']);
 
@@ -146,7 +151,9 @@ class MainController extends AbstractController
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
             $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
             $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
             $image->setId($imageData['hits']['hits'][0]['_id']);
 
