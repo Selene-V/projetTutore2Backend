@@ -11,6 +11,15 @@ function createBDD(file) {
     .createReadStream("CSV/" + file + ".csv")
     .pipe(csv.parse({ headers: true }))
     .on("data", function (data) {
+      for (let [key, value] of Object.entries(data)) {
+        if (!isNaN(value)){
+          if (parseInt(value) === parseFloat(value)){
+            value = parseInt(value);
+          } else {
+            value = parseFloat(value);
+          }
+        }
+      };
       // Let's start by indexing some data
       client.index({
         index: file,
