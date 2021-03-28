@@ -134,6 +134,15 @@ class MainController extends AbstractController
             $game->setId($gameInfos['_id']);
             array_push($games, json_decode($this->serializer->serialize($game, 'json')));
         }
+
+        $params2 = [
+            'index' => 'steam',
+        ];
+
+        $count = $client->count($params2);
+
+        array_push($games, ['countPages' => $count['count']]);
+
         return new JsonResponse($games);
     }
 
