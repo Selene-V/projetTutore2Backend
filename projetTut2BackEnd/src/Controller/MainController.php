@@ -99,9 +99,12 @@ class MainController extends AbstractController
             $criteria = $temp[0];
             $order = $temp[1];
 
-
-            $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            //$params['body']['sort'] = [ $criteria => $order];
+            if($criteria !== 'release_date'){
+                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
+            }
+            else{
+                $params['sort'] = array('data.' . $criteria . ':' . $order);
+            }
         }
 
         $result = $client->search($params);
