@@ -100,7 +100,7 @@ class MainController extends AbstractController
             $order = $temp[1];
 
 
-            $params['sort'] = array('data.' . $criteria . ':' . $order);
+            $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
             //$params['body']['sort'] = [ $criteria => $order];
         }
 
