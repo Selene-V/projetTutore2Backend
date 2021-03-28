@@ -74,11 +74,12 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/games/{page}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
+     * @Route("/games/{page}/{sorting}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
      * @param int $page
+     * @param string sorting
      * @return JsonResponse
      */
-    public function games(int $page): JsonResponse
+    public function games(int $page, string $sorting = null): JsonResponse
     {
         if ($page < 1) {
             $page = 1;
@@ -91,6 +92,17 @@ class MainController extends AbstractController
         ];
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+
+        //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
+        if($sorting !== null){
+            $temp = explode('-',$sorting);
+            $criteria = $temp[0];
+            $order = $temp[1];
+
+
+            $params['sort'] = array('data.' . $criteria . ':' . $order);
+            //$params['body']['sort'] = [ $criteria => $order];
+        }
 
         $result = $client->search($params);
 
@@ -222,32 +234,34 @@ class MainController extends AbstractController
         return new JsonResponse($results);
     }
 
-    /**
-     * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
-     * @param string|null $publisher
-     * @param string $producer
-     * @return JsonResponse
-     */
-    public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
-    {
+    // /**
+    //  * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
+    //  * @param string|null $publisher
+    //  * @param string $producer
+    //  * @return JsonResponse
+    //  */
+    // public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
+    // {
 
-        dd($publisher);
+    //     dd($publisher);
 
-        $params = [
-            'index' => 'steam_media_data',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'data.steam_appid' => $appid
-                    ]
-                ]
-            ]
-        ];
+    //     $params = [
+    //         'index' => 'steam_media_data',
+    //         'body' => [
+    //             'query' => [
+    //                 'match' => [
+    //                     'data.steam_appid' => $appid
+    //                 ]
+    //             ]
+    //         ]
+    //     ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+    //     $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-        $results = $client->search($params);
+    //     $results = $client->search($params);
 
-        return new JsonResponse($results);
-    }
+    //     return new JsonResponse($results);
+    // }
+
+    
 }
