@@ -7,12 +7,12 @@ const csv = require("fast-csv");
 let iterator = 0;
 
 function createBDD(file) {
+  let data = {};
   const stream = fs
     .createReadStream("CSV/" + file + ".csv")
     .pipe(csv.parse({ headers: true }))
-    .on("data", function (data) {
-      let dataOk = {};
-      for (let [key, value] of Object.entries(data)) {
+    .on("data", function (dataFile) {
+      for (let [key, value] of Object.entries(dataFile)) {
         if (!isNaN(value)){
           if (parseInt(value) === parseFloat(value)){
             value = parseInt(value);
@@ -20,8 +20,9 @@ function createBDD(file) {
             value = parseFloat(value);
           }
         }
-        dataOk[key] = value;
+        data[key] = value;
       };
+      // const dataJson = JSON.stringify(dataOk);
       // Let's start by indexing some data
       client.index({
         index: file,
