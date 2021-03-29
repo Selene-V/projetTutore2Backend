@@ -76,18 +76,20 @@ class MainController extends AbstractController
     /**
      * @Route("/games/{page}/{sorting}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
      * @param int $page
-     * @param string sorting
+     * @param string|null $sorting
      * @return JsonResponse
      */
     public function games(int $page, string $sorting = null): JsonResponse
     {
+        $gamesByPage = 8;
+
         if ($page < 1) {
             $page = 1;
         }
         $params = [
             'index' => 'steam',
-            'size' => 8,
-            'from' => ($page-1)*8
+            'size' => $gamesByPage,
+            'from' => ($page-1)*$gamesByPage
 
         ];
 
@@ -141,9 +143,9 @@ class MainController extends AbstractController
             'index' => 'steam',
         ];
 
-        $count = $client->count($params2);
+        $totalGames = $client->count($params2);
 
-        $games['totalGames'] = $count['count'];
+        $games['gamesByPage'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
     }
