@@ -144,7 +144,7 @@ class MainController extends AbstractController
 
         $count = $client->count($params2);
 
-        array_push($games, ['totalGames' => $count['count']]);
+        $games['totalGames'] = $count['count'];
 
         return new JsonResponse($games);
     }
