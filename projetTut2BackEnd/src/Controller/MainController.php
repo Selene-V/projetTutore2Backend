@@ -256,9 +256,18 @@ class MainController extends AbstractController
     public function advancedSearch(Request $request): JsonResponse
     {
 
-        //dd($request->getContent());
+        $requestContent = $request->getContent();
 
-        return new JsonResponse($request->getContent());
+        $searchParams = [];
+
+        foreach (explode('&', $requestContent) as $chunk) {
+            $param = explode("=", $chunk);
+
+            $searchParams[$param[0]] = $param[1] ;
+        }
+
+
+        return new JsonResponse($searchParams);
 
         $params = [
             'index' => 'steam_media_data',
