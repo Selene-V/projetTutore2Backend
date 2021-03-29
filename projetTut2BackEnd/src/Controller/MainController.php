@@ -112,7 +112,7 @@ class MainController extends AbstractController
 
         $result = $client->search($params);
 
-        $games = ['games' => [], 'countPages' => 0];
+        $games = ['games' => []];
         foreach ($result['hits']['hits'] as $gameInfos){
             $idgame = $gameInfos['_source']['data']['appid'];
 
@@ -144,7 +144,7 @@ class MainController extends AbstractController
 
         $count = $client->count($params2);
 
-        array_push($games['countPages'], $count['count']);
+        array_push($games, ['totalGames' => $count['count']]);
 
         return new JsonResponse($games);
     }
