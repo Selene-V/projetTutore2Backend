@@ -20,6 +20,7 @@ class MainController extends AbstractController
     private array $encoders;
     private array $normalizers;
     private Serializer $serializer;
+    private array $keywordArray;
 
     /**
      * MainController constructor.
@@ -28,6 +29,8 @@ class MainController extends AbstractController
     {
         $this->encoders = [new XmlEncoder(), new JsonEncoder()];
         $this->normalizers = [new ObjectNormalizer()];
+
+        $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
         $this->serializer = new Serializer($this->normalizers, $this->encoders);
     }
@@ -97,13 +100,12 @@ class MainController extends AbstractController
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
-            $keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
             $temp = explode('-',$sorting);
             $criteria = $temp[0];
             $order = $temp[1];
 
-            if(in_array($criteria, $keywordArray)){
+            if(in_array($criteria, $this->keywordArray)){
                 $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
             }
             else{
@@ -267,38 +269,38 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
-        
-
-        // $params = [
-        //     'index' => 'steam_description_data',
-        //     'body' => [
-        //         'query' => [
-        //             'match' => [
-        //                 'data.steam_appid' => $appid
-        //             ]
-        //         ]
-        //     ]
-        // ];
-
         $searchPhrase = "";
 
-        foreach ($searchParams as $criteria => $value) {
-            $searchPhrase = $searchPhrase . "data.$criteria => $value,";
-        }
-
         $params = [
-            'index' => 'steam',
-            'body' => [
-                'query' => [
-                    'match' => [
-                    ]
-                ]
-            ]
-        ];
+            "index" => "steam",
+            "body" => [
+                "query" => [
+                    "bool" => [
+                            "must" => [
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ];
 
-        $params['body']['query']['match'][] = $searchPhrase;
+        $iterator = 0;
 
-        dd($params);
+        $queryParams = [];
+
+        foreach ($searchParams as $criteria => $value) {
+            if(in_array($criteria, $this->keywordArray)){
+                $temp =  array("terms" => array('data.'.$criteria.'.keyword' => (array)$value));
+            }
+            else{
+                $temp =  array("terms" => array('data.'.$criteria => (array)$value));
+            }
+
+            array_push($queryParams, ...[$temp]);
+
+            $iterator++;
+
+        }
+        $params['body']['query']['bool']['must'] = $queryParams;
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
