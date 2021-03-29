@@ -13,7 +13,6 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use function MongoDB\BSON\toJSON;
 use Symfony\Component\HttpFoundation\Request;
 
 class MainController extends AbstractController
@@ -266,19 +265,38 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
+        
 
-        return new JsonResponse($searchParams);
+        // $params = [
+        //     'index' => 'steam_description_data',
+        //     'body' => [
+        //         'query' => [
+        //             'match' => [
+        //                 'data.steam_appid' => $appid
+        //             ]
+        //         ]
+        //     ]
+        // ];
+
+        $searchPhrase = "";
+
+        foreach ($searchParams as $criteria => $value) {
+            $searchPhrase = $searchPhrase . "data.$criteria => $value,";
+        }
 
         $params = [
-            'index' => 'steam_media_data',
+            'index' => 'steam',
             'body' => [
                 'query' => [
                     'match' => [
-                        'data.steam_appid' => $appid
                     ]
                 ]
             ]
         ];
+
+        $params['body']['query']['match'][] = $searchPhrase;
+
+        dd($params);
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
