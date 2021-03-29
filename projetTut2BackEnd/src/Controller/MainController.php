@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Entity\Image;
 use App\Entity\Description;
+use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
@@ -20,6 +21,7 @@ class MainController extends AbstractController
     private array $encoders;
     private array $normalizers;
     private Serializer $serializer;
+    private array $keywordArray;
 
     /**
      * MainController constructor.
@@ -30,6 +32,8 @@ class MainController extends AbstractController
         $this->normalizers = [new ObjectNormalizer()];
 
         $this->serializer = new Serializer($this->normalizers, $this->encoders);
+
+        $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
     }
 
     /**
@@ -97,13 +101,12 @@ class MainController extends AbstractController
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
-            $keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
             $temp = explode('-',$sorting);
             $criteria = $temp[0];
             $order = $temp[1];
 
-            if(in_array($criteria, $keywordArray)){
+            if(in_array($criteria, $this->keywordArray)){
                 $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
             }
             else{
@@ -145,8 +148,8 @@ class MainController extends AbstractController
 
         $totalGames = $client->count($params2);
 
-        $games['gamesByPage'] = ceil($totalGames['count']/$gamesByPage);
-
+        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
+        $games['gamesTotal'] = $totalGames['count'];
         return new JsonResponse($games);
     }
 
@@ -252,6 +255,7 @@ class MainController extends AbstractController
 
     /**
      * @Route("/advancedSearch", name="advancedSearch", methods={"POST"})
+     * @param Request $request
      * @return JsonResponse
      */
     public function advancedSearch(Request $request): JsonResponse
@@ -267,38 +271,50 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
-        
-
-        // $params = [
-        //     'index' => 'steam_description_data',
-        //     'body' => [
-        //         'query' => [
-        //             'match' => [
-        //                 'data.steam_appid' => $appid
-        //             ]
-        //         ]
-        //     ]
-        // ];
-
-        $searchPhrase = "";
-
+        $jsonTemp='';
         foreach ($searchParams as $criteria => $value) {
-            $searchPhrase = $searchPhrase . "data.$criteria => $value,";
+            if(in_array($criteria, $this->keywordArray)) {
+                $temp = '{"terms" : {"data.' . $criteria . '.keyword": [ "' . $value . '" ]}}';
+            } else {
+                $temp = '{"terms" : {"data.'.$criteria . '": [ "'.$value.'" ]}}';
+            }
+            if ($jsonTemp===''){
+                $jsonTemp = $temp;
+            }else{
+                $jsonTemp = $jsonTemp.', '.$temp;
+            }
         }
 
-        $params = [
-            'index' => 'steam',
-            'body' => [
-                'query' => [
-                    'match' => [
-                    ]
-                ]
-            ]
-        ];
+        $jsonTemp = '{"index" : "steam", "body" : { "query" : { "bool" : { "must" : [' . $jsonTemp . ']}}}}';
 
-        $params['body']['query']['match'][] = $searchPhrase;
 
-        dd($params);
+        $params = json_decode($jsonTemp, true);
+//        $params = [
+//            'index' => 'steam',
+//            'body' => [
+//                'query' => [
+//                    'bool' => [
+//                        'must' => [
+//                            [
+//                                'terms' => [
+//                                    'data.name.keyword' => [
+//                                        'QUAKE'
+//                                    ],
+//                                ]
+//                            ],
+//                            [
+//                                'terms' => [
+//                                    'data.appid' => [
+//                                        // appid de Disciples II: Gallean's Return
+//                                        1640
+//                                    ],
+//                                ]
+//                            ],
+//                        ],
+//                    ],
+//                ],
+//            ],
+//        ];
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
