@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use function MongoDB\BSON\toJSON;
+use Symfony\Component\HttpFoundation\Request;
 
 class MainController extends AbstractController
 {
@@ -95,11 +96,13 @@ class MainController extends AbstractController
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
+            $keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
+
             $temp = explode('-',$sorting);
             $criteria = $temp[0];
             $order = $temp[1];
 
-            if($criteria !== 'release_date'){
+            if(in_array($criteria, $keywordArray)){
                 $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
             }
             else{
@@ -246,34 +249,34 @@ class MainController extends AbstractController
         return new JsonResponse($results);
     }
 
-    // /**
-    //  * @Route("/advancedSearch/{publisher}/{producer}", name="advancedSearch", methods={"GET"})
-    //  * @param string|null $publisher
-    //  * @param string $producer
-    //  * @return JsonResponse
-    //  */
-    // public function advancedSearch(string $publisher = null,  string $producer): JsonResponse
-    // {
+    /**
+     * @Route("/advancedSearch", name="advancedSearch", methods={"POST"})
+     * @return JsonResponse
+     */
+    public function advancedSearch(Request $request): JsonResponse
+    {
 
-    //     dd($publisher);
+        //dd($request->getContent());
 
-    //     $params = [
-    //         'index' => 'steam_media_data',
-    //         'body' => [
-    //             'query' => [
-    //                 'match' => [
-    //                     'data.steam_appid' => $appid
-    //                 ]
-    //             ]
-    //         ]
-    //     ];
+        return new JsonResponse($request->getContent());
 
-    //     $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+        $params = [
+            'index' => 'steam_media_data',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.steam_appid' => $appid
+                    ]
+                ]
+            ]
+        ];
 
-    //     $results = $client->search($params);
+        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-    //     return new JsonResponse($results);
-    // }
+        $results = $client->search($params);
+
+        return new JsonResponse($results);
+    }
 
     
 }
