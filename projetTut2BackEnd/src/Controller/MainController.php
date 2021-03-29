@@ -13,7 +13,6 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use function MongoDB\BSON\toJSON;
 use Symfony\Component\HttpFoundation\Request;
 
 class MainController extends AbstractController
@@ -202,7 +201,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/game/{appid}/images", name="images_by_game", methods={"GET"})
+     * @Route("/game/images/{appid}", name="images_by_game", methods={"GET"})
      * @param string $appid
      * @return JsonResponse
      */
@@ -221,13 +220,13 @@ class MainController extends AbstractController
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-        $results = $client->search($params);
+        $result = $client->search($params);
 
-        return new JsonResponse($results);
+        return new JsonResponse($result);
     }
 
     /**
-     * @Route("/game/{appid}/descriptions", name="images_by_game", methods={"GET"})
+     * @Route("/game/descriptions/{appid}", name="descriptions_by_game", methods={"GET"})
      * @param string $appid
      * @return JsonResponse
      */
