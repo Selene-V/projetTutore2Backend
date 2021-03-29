@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Entity\Image;
 use App\Entity\Description;
+use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
@@ -33,6 +34,8 @@ class MainController extends AbstractController
         $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
         $this->serializer = new Serializer($this->normalizers, $this->encoders);
+
+        $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
     }
 
     /**
@@ -147,8 +150,8 @@ class MainController extends AbstractController
 
         $totalGames = $client->count($params2);
 
-        $games['gamesByPage'] = ceil($totalGames['count']/$gamesByPage);
-
+        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
+        $games['gamesTotal'] = $totalGames['count'];
         return new JsonResponse($games);
     }
 
@@ -203,7 +206,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/game/{appid}/images", name="images_by_game", methods={"GET"})
+     * @Route("/game/images/{appid}", name="images_by_game", methods={"GET"})
      * @param string $appid
      * @return JsonResponse
      */
@@ -222,13 +225,13 @@ class MainController extends AbstractController
 
         $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-        $results = $client->search($params);
+        $result = $client->search($params);
 
-        return new JsonResponse($results);
+        return new JsonResponse($result);
     }
 
     /**
-     * @Route("/game/{appid}/descriptions", name="images_by_game", methods={"GET"})
+     * @Route("/game/descriptions/{appid}", name="descriptions_by_game", methods={"GET"})
      * @param string $appid
      * @return JsonResponse
      */
@@ -254,6 +257,7 @@ class MainController extends AbstractController
 
     /**
      * @Route("/advancedSearch", name="advancedSearch", methods={"POST"})
+     * @param Request $request
      * @return JsonResponse
      */
     public function advancedSearch(Request $request): JsonResponse
