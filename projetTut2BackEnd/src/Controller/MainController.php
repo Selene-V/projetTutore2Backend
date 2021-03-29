@@ -82,13 +82,15 @@ class MainController extends AbstractController
      */
     public function games(int $page, string $sorting = null): JsonResponse
     {
+        $gamesByPage = 8;
+
         if ($page < 1) {
             $page = 1;
         }
         $params = [
             'index' => 'steam',
-            'size' => 8,
-            'from' => ($page-1)*8
+            'size' => $gamesByPage,
+            'from' => ($page-1)*$gamesByPage
 
         ];
 
@@ -142,9 +144,9 @@ class MainController extends AbstractController
             'index' => 'steam',
         ];
 
-        $count = $client->count($params2);
+        $totalGames = $client->count($params2);
 
-        array_push($games, ['totalGames' => $count['count']]);
+        $games['gamesByPage'] = $totalGames['count']/$gamesByPage;
 
         return new JsonResponse($games);
     }
