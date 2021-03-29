@@ -77,7 +77,7 @@ class MainController extends AbstractController
     /**
      * @Route("/games/{page}/{sorting}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
      * @param int $page
-     * @param string sorting
+     * @param string|null $sorting
      * @return JsonResponse
      */
     public function games(int $page, string $sorting = null): JsonResponse
@@ -146,7 +146,7 @@ class MainController extends AbstractController
 
         $totalGames = $client->count($params2);
 
-        $games['gamesByPage'] = $totalGames['count']/$gamesByPage;
+        $games['gamesByPage'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
     }
