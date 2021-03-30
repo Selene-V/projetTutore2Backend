@@ -6,7 +6,7 @@ use App\Entity\Game;
 use App\Entity\Image;
 use App\Entity\Description;
 use App\Entity\Requirement;
-use phpDocumentor\Reflection\Types\Array_;
+use Elasticsearch\Client;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
@@ -23,7 +23,7 @@ class MainController extends AbstractController
     private array $normalizers;
     private Serializer $serializer;
     private array $keywordArray;
-    private $client;
+    private Client $client;
 
     /**
      * MainController constructor.
@@ -287,9 +287,7 @@ class MainController extends AbstractController
             ]
         ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $results = $client->search($params);
+        $results = $this->client->search($params);
 
         return new JsonResponse($results);
     }
@@ -349,6 +347,4 @@ class MainController extends AbstractController
 
         return new JsonResponse($results);
     }
-
-    
 }
