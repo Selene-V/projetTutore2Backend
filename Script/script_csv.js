@@ -12,7 +12,11 @@ function createBDD(file) {
         .pipe(csv.parse({ headers: true }))
         .on("data", function (dataFile) {
           let data = {};
+
           for (let [key, value] of Object.entries(dataFile)) {
+            if (keyToChangeValue.includes(key)){
+              value = value.split(';');
+            }
             if (key === "price") {
               continue;
             }
@@ -20,6 +24,9 @@ function createBDD(file) {
               value = parseInt(value);
             }
             data[key] = value;
+              // if (file === 'steam'){
+              //     console.log(data);
+              // }
           }
           // const dataJson = JSON.stringify(dataOk);
           // Let's start by indexing some data
@@ -50,6 +57,15 @@ const indexes = [
   "steam_support_info",
   "steamspy_tag_data",
 ];
+
+const keyToChangeValue = [
+    "developer",
+    "publisher",
+    "platforms",
+    "categories",
+    "genres",
+    "steamspy_tags"
+]
 
 async function purgeDB() {
   console.log("Purging current indexes if they exist");
