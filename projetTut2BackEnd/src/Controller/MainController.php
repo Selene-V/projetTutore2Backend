@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Entity\Image;
 use App\Entity\Description;
+use App\Entity\Requirement;
 use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -74,10 +75,19 @@ class MainController extends AbstractController
             $description->setId($descriptionData['hits']['hits'][0]['_id']);
         }
 
+        $requirement = new Requirement();
+        $requirementData = json_decode($this->requirementsByGame($idgame)->getContent(), true);
+        if ($requirementData['hits']['hits'] != null) {
+//            dd($requirementData['hits']['hits'][0]['_source']['data']);
+            $requirement->hydrate($requirementData['hits']['hits'][0]['_source']['data']);
+            $requirement->setId($requirementData['hits']['hits'][0]['_id']);
+        }
+
         $game = new Game();
         $game->hydrate($result['_source']['data']);
         $game->setImage($image);
         $game->setDescription($description);
+        $game->setRequirement($requirement);
         $game->setId($result['_id']);
 
         return new JsonResponse(json_decode($this->serializer->serialize($game, 'json')));
@@ -251,6 +261,31 @@ class MainController extends AbstractController
     {
         $params = [
             'index' => 'steam_description_data',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.steam_appid' => $appid
+                    ]
+                ]
+            ]
+        ];
+
+        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+
+        $results = $client->search($params);
+
+        return new JsonResponse($results);
+    }
+
+    /**
+     * @Route("/game/requirements/{appid}", name="requirements_by_game", methods={"GET"})
+     * @param string $appid
+     * @return JsonResponse
+     */
+    public function requirementsByGame(string $appid): JsonResponse
+    {
+        $params = [
+            'index' => 'steam_requirements_data',
             'body' => [
                 'query' => [
                     'match' => [

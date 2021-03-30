@@ -50,6 +50,8 @@ class Game
 
     private ?Description $description = null;
 
+    private ?Requirement $requirement = null;
+
     /**
      * @return string|null
      */
@@ -65,6 +67,7 @@ class Game
     public function setId(string $id): self
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -425,6 +428,7 @@ class Game
     public function setImage(Image $image): self
     {
         $this->image = $image;
+
         return $this;
     }
 
@@ -443,8 +447,26 @@ class Game
     public function setDescription(Description $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
+    /**
+     * @return Requirement|null
+     */
+    public function getRequirement(): ?Requirement
+    {
+        return $this->requirement;
+    }
 
+    /**
+     * @param Requirement|null $requirement
+     * @return $this
+     */
+    public function setRequirement(?Requirement $requirement): self
+    {
+        $this->requirement = $requirement;
+
+        return $this;
+    }
 }
