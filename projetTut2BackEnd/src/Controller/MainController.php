@@ -277,8 +277,6 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
-        $searchPhrase = "";
-
         $params = [
             "index" => "steam",
             "body" => [
@@ -290,8 +288,6 @@ class MainController extends AbstractController
                     ],
                 ],
             ];
-
-        $iterator = 0;
 
         $queryParams = [];
 
@@ -305,11 +301,61 @@ class MainController extends AbstractController
 
             array_push($queryParams, ...[$temp]);
 
-            $iterator++;
-
         }
         $params['body']['query']['bool']['must'] = $queryParams;
 
+        $results = $this->client->search($params);
+
+        return new JsonResponse($results);
+    }
+
+    /**
+     * @Route("/fuzzySearch", name="fuzzySearch", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function fuzzySearch(Request $request): JsonResponse
+    {
+
+        $requestContent = $request->getContent();
+
+        $searchParams = [];
+
+        foreach (explode('&', $requestContent) as $chunk) {
+            $param = explode("=", $chunk);
+
+            $searchParams[$param[0]] = $param[1] ;
+        }
+
+        $params = [
+            'index' => 'steam',
+            'body' => [
+                'query' => [
+                    'fuzzy' => [
+                    ]
+                ]
+            ]
+        ];
+
+
+        $queryParams = [];
+
+        foreach ($searchParams as $criteria => $value) {
+            if(in_array($criteria, $this->keywordArray)){
+                $temp =  array('data.'.$criteria.'.keyword' => array("value" => $value));
+            }
+            else{
+                $temp =  array('data.'.$criteria => array("value" => $value));
+            }
+
+            array_push($queryParams, $temp);
+
+        }
+
+        $params['body']['query']['fuzzy'] = $queryParams;
+
+        //dd($params);
+        
         $results = $this->client->search($params);
 
         return new JsonResponse($results);
