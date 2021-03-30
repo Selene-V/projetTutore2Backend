@@ -18,19 +18,19 @@ class Game
 
     private ?int $english = null;
 
-    private ?string $developer = null;
+    private ?array $developer = null;
 
-    private ?string $publisher = null;
+    private ?array $publisher = null;
 
-    private ?string $platforms = null;
+    private ?array $platforms = null;
 
     private ?int $requiredAge = null;
 
-    private ?string $categories = null;
+    private ?array $categories = null;
 
-    private ?string $genres = null;
+    private ?array $genres = null;
 
-    private ?string $steamspyTags = null;
+    private ?array $steamspyTags = null;
 
     private ?int $achievements = null;
 
@@ -148,18 +148,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getDeveloper(): ?string
+    public function getDeveloper(): ?array
     {
         return $this->developer;
     }
 
     /**
-     * @param string $developer
+     * @param array $developer
      * @return $this
      */
-    public function setDeveloper(string $developer): self
+    public function setDeveloper(array $developer): self
     {
         $this->developer = $developer;
 
@@ -167,18 +167,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getPublisher(): ?string
+    public function getPublisher(): ?array
     {
         return $this->publisher;
     }
 
     /**
-     * @param string $publisher
+     * @param array $publisher
      * @return $this
      */
-    public function setPublisher(string $publisher): self
+    public function setPublisher(array $publisher): self
     {
         $this->publisher = $publisher;
 
@@ -186,18 +186,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getPlatforms(): ?string
+    public function getPlatforms(): ?array
     {
         return $this->platforms;
     }
 
     /**
-     * @param string $platforms
+     * @param array $platforms
      * @return $this
      */
-    public function setPlatforms(string $platforms): self
+    public function setPlatforms(array $platforms): self
     {
         $this->platforms = $platforms;
 
@@ -224,18 +224,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getCategories(): ?string
+    public function getCategories(): ?array
     {
         return $this->categories;
     }
 
     /**
-     * @param string $categories
+     * @param array $categories
      * @return $this
      */
-    public function setCategories(string $categories): self
+    public function setCategories(array $categories): self
     {
         $this->categories = $categories;
 
@@ -243,18 +243,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getGenres(): ?string
+    public function getGenres(): ?array
     {
         return $this->genres;
     }
 
     /**
-     * @param string $genres
+     * @param array $genres
      * @return $this
      */
-    public function setGenres(string $genres): self
+    public function setGenres(array $genres): self
     {
         $this->genres = $genres;
 
@@ -262,18 +262,18 @@ class Game
     }
 
     /**
-     * @return string|null
+     * @return array|null
      */
-    public function getSteamspyTags(): ?string
+    public function getSteamspyTags(): ?array
     {
         return $this->steamspyTags;
     }
 
     /**
-     * @param string $steamspyTags
+     * @param array $steamspyTags
      * @return $this
      */
-    public function setSteamspyTags(string $steamspyTags): self
+    public function setSteamspyTags(array $steamspyTags): self
     {
         $this->steamspyTags = $steamspyTags;
 
