@@ -57,18 +57,22 @@ class MainController extends AbstractController
 
         $image = new Image();
         $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-        $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-        $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-        $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-        $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+        if ($imageData['hits']['hits'] != null) {
+            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
 
-        $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-        $image->setId($imageData['hits']['hits'][0]['_id']);
+            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+            $image->setId($imageData['hits']['hits'][0]['_id']);
+        }
 
         $description = new Description();
         $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-        $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-        $description->setId($descriptionData['hits']['hits'][0]['_id']);
+        if ($descriptionData['hits']['hits'] != null) {
+            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+            $description->setId($descriptionData['hits']['hits'][0]['_id']);
+        }
 
         $game = new Game();
         $game->hydrate($result['_source']['data']);
@@ -124,17 +128,21 @@ class MainController extends AbstractController
 
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
-            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-            $image->setId($imageData['hits']['hits'][0]['_id']);
+            if ($imageData['hits']['hits'] != null){
+                $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+                $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+                $image->setId($imageData['hits']['hits'][0]['_id']);
+            }
 
             $description = new Description();
             $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-            $description->setId($descriptionData['hits']['hits'][0]['_id']);
+            if ($descriptionData['hits']['hits'] != null) {
+                $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+                $description->setId($descriptionData['hits']['hits'][0]['_id']);
+            }
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -183,17 +191,21 @@ class MainController extends AbstractController
 
             $image = new Image();
             $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
-            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-            $image->setId($imageData['hits']['hits'][0]['_id']);
+            if ($imageData['hits']['hits'] != null) {
+                $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
+                $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+                $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
+                $image->setId($imageData['hits']['hits'][0]['_id']);
+            }
 
             $description = new Description();
             $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-            $description->setId($descriptionData['hits']['hits'][0]['_id']);
+            if ($descriptionData['hits']['hits'] != null) {
+                $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
+                $description->setId($descriptionData['hits']['hits'][0]['_id']);
+            }
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
