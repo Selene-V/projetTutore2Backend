@@ -23,6 +23,7 @@ class MainController extends AbstractController
     private array $normalizers;
     private Serializer $serializer;
     private array $keywordArray;
+    private $client;
 
     /**
      * MainController constructor.
@@ -32,9 +33,9 @@ class MainController extends AbstractController
         $this->encoders = [new XmlEncoder(), new JsonEncoder()];
         $this->normalizers = [new ObjectNormalizer()];
 
-        $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
-
         $this->serializer = new Serializer($this->normalizers, $this->encoders);
+
+        $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
         $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
     }
@@ -50,9 +51,8 @@ class MainController extends AbstractController
             'index' => 'steam',
             'id' => $id
         ];
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-        $result = $client->get($params);
+        $result = $this->client->get($params);
 
         $idgame = $result['_source']['data']['appid'];
 
@@ -113,8 +113,6 @@ class MainController extends AbstractController
 
         ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
 
@@ -130,7 +128,7 @@ class MainController extends AbstractController
             }
         }
 
-        $result = $client->search($params);
+        $result = $this->client->search($params);
 
         $games = ['games' => []];
         foreach ($result['hits']['hits'] as $gameInfos){
@@ -166,7 +164,7 @@ class MainController extends AbstractController
             'index' => 'steam',
         ];
 
-        $totalGames = $client->count($params2);
+        $totalGames = $this->client->count($params2);
 
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
         $games['gamesTotal'] = $totalGames['count'];
@@ -191,9 +189,7 @@ class MainController extends AbstractController
             ],
         ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $result = $client->search($params);
+        $result = $this->client->search($params);
 
         $games = [];
         foreach ($result['hits']['hits'] as $gameInfos){
@@ -245,9 +241,7 @@ class MainController extends AbstractController
             ]
         ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $result = $client->search($params);
+        $result = $this->client->search($params);
 
         return new JsonResponse($result);
     }
@@ -270,9 +264,7 @@ class MainController extends AbstractController
             ]
         ];
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $results = $client->search($params);
+        $results = $this->client->search($params);
 
         return new JsonResponse($results);
     }
@@ -328,11 +320,11 @@ class MainController extends AbstractController
                 "query" => [
                     "bool" => [
                             "must" => [
-                                    ],
-                                ],
                             ],
                         ],
-                    ];
+                    ],
+                ],
+            ];
 
         $iterator = 0;
 
@@ -353,9 +345,7 @@ class MainController extends AbstractController
         }
         $params['body']['query']['bool']['must'] = $queryParams;
 
-        $client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
-
-        $results = $client->search($params);
+        $results = $this->client->search($params);
 
         return new JsonResponse($results);
     }
