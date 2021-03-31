@@ -229,6 +229,9 @@ class MainController extends AbstractController
             array_push($games, json_decode($this->serializer->serialize($game, 'json')));
         }
 
+        $params2 = [
+            'index' => 'steam',
+        ];
         $totalGames = $this->client->count($params2);
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
