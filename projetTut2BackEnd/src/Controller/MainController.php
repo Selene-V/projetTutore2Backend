@@ -374,19 +374,12 @@ class MainController extends AbstractController
         $queryParams = [];
 
         foreach ($searchParams as $criteria => $value) {
-            if(in_array($criteria, $this->keywordArray)){
-                $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value);
-            }
-            else{
-                $queryParams['data.'.$criteria] = array("value" => $value);
-            }
+            $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2",);
 
         }
 
         $params['body']['query']['fuzzy'] = $queryParams;
 
-        //dd($params);
-        
         $results = $this->client->search($params);
 
         return new JsonResponse($results);
