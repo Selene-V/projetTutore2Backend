@@ -172,14 +172,21 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/gameByName/{name}", name="gameByName", methods={"GET"})
+     * @Route("/gameByName/{name}/{page}", name="gameByName", methods={"GET"})
      * @param string $name
      * @return JsonResponse
      */
     public function gameByName(string $name): JsonResponse
     {
+        $gamesByPage = 8;
+
+        if ($page < 1) {
+            $page = 1;
+        }
         $params = [
             'index' => 'steam',
+            'size' => $gamesByPage,
+            'from' => ($page-1)*$gamesByPage,
             'body' => [
                 'query' => [
                     'match' => [
@@ -325,13 +332,26 @@ class MainController extends AbstractController
 
         foreach ($searchParams as $criteria => $value) {
             if($criteria === "release_date" && strlen($value) === 4){
-                $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y", "format" => "yyyy" ));
+                $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y" ));
+            }
+            else if($criteria === "release_date_begin" || $criteria ==="release_date_end"){
+                switch ($criteria) {
+                    case 'release_date_begin':
+                        $releaseDateBegin = $value;
+                        break;
+                    case 'release_date_end':
+                        echo $releaseDateBegin . '<br>';
+                        echo $value;
+                        $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value, "format" => "yyyy-mm-dd" ));
+                        break;
+                    default:
+                        break;
+                }
             }
             else{
                 array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
             }
         }
-
 
         $params['body']['query']['bool']['should'] = $queryParams;
         if(isset($range)){
