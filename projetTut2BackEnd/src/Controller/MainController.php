@@ -174,9 +174,10 @@ class MainController extends AbstractController
     /**
      * @Route("/gameByName/{name}/{page}", name="gameByName", methods={"GET"})
      * @param string $name
+     * @param string $page
      * @return JsonResponse
      */
-    public function gameByName(string $name): JsonResponse
+    public function gameByName(string $name, int $page): JsonResponse
     {
         $gamesByPage = 8;
 
@@ -227,7 +228,7 @@ class MainController extends AbstractController
             $game->setId($gameInfos['_id']);
             array_push($games, json_decode($this->serializer->serialize($game, 'json')));
         }
-        
+
         $totalGames = $this->client->count($params2);
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
