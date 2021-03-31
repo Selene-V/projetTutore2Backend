@@ -315,22 +315,24 @@ class MainController extends AbstractController
             "index" => "steam",
             "body" => [
                 "query" => [
-                    "bool" => [
-                        "should" => [
-                            ],
-                        ],
-                    ],
+                    // "bool" => [
+                    //     "should" => [
+                    //         ],
+                    //     ],
+                     ],
                 ]
             ];
 
-        $queryParams = [];
-
         foreach ($searchParams as $criteria => $value) {
-            array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
+            if($criteria === "release_date" && strlen($value) === 4){
+                $params['body']['query']['range'] = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y", "format" => "yyyy" ));
+            }
+            else{
+                array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
+            }
         }
 
-        $params['body']['query']['bool']['should'] = $queryParams;
-
+        //$params['body']['query']['bool']['should'] = $queryParams;
         //dd($params);
 
         $results = $this->client->search($params);
