@@ -349,7 +349,7 @@ class MainController extends AbstractController
                     case 'release_date_end':
                         echo $releaseDateBegin . '<br>';
                         echo $value;
-                        $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value, "format" => "yyyy-mm-dd" ));
+                        $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
                         break;
                     default:
                         break;
