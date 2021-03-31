@@ -375,13 +375,11 @@ class MainController extends AbstractController
 
         foreach ($searchParams as $criteria => $value) {
             if(in_array($criteria, $this->keywordArray)){
-                $temp =  array('data.'.$criteria.'.keyword' => array("value" => $value));
+                $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value);
             }
             else{
-                $temp =  array('data.'.$criteria => array("value" => $value));
+                $queryParams['data.'.$criteria] = array("value" => $value);
             }
-
-            array_push($queryParams, $temp);
 
         }
 
