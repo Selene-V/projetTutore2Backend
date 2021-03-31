@@ -303,8 +303,6 @@ class MainController extends AbstractController
 
         $requestContent = $request->getContent();
 
-        $searchParams = [];
-
         foreach (explode('&', $requestContent) as $chunk) {
             $param = explode("=", $chunk);
 
@@ -315,24 +313,30 @@ class MainController extends AbstractController
             "index" => "steam",
             "body" => [
                 "query" => [
-                    // "bool" => [
-                    //     "should" => [
-                    //         ],
-                    //     ],
+                    "bool" => [
+                        "should" => [
+                            ],
+                        ],
                      ],
                 ]
             ];
 
+        $queryParams = [];
+
         foreach ($searchParams as $criteria => $value) {
             if($criteria === "release_date" && strlen($value) === 4){
-                $params['body']['query']['range'] = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y", "format" => "yyyy" ));
+                $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y", "format" => "yyyy" ));
             }
             else{
                 array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
             }
         }
 
-        //$params['body']['query']['bool']['should'] = $queryParams;
+
+        $params['body']['query']['bool']['should'] = $queryParams;
+        if(isset($range)){
+            array_push($params['body']['query']['bool']['should'], array("range" => $range));
+        }
         //dd($params);
 
         $results = $this->client->search($params);
