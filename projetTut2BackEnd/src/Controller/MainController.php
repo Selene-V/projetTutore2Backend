@@ -199,7 +199,7 @@ class MainController extends AbstractController
 
         $result = $this->client->search($params);
 
-        $games = [];
+        $games = ['games' => []];
         foreach ($result['hits']['hits'] as $gameInfos){
             $idgame = $gameInfos['_source']['data']['appid'];
 
@@ -226,7 +226,7 @@ class MainController extends AbstractController
             $game->setImage($image);
             $game->setDescription($description);
             $game->setId($gameInfos['_id']);
-            array_push($games, json_decode($this->serializer->serialize($game, 'json')));
+            array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
         }
 
         $params2 = [
