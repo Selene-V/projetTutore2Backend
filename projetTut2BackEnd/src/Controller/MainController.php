@@ -220,6 +220,7 @@ class MainController extends AbstractController
             $game->setId($gameInfos['_id']);
             array_push($games, json_decode($this->serializer->serialize($game, 'json')));
         }
+
         return new JsonResponse($games);
     }
 
@@ -315,27 +316,22 @@ class MainController extends AbstractController
             "body" => [
                 "query" => [
                     "bool" => [
-                            "must" => [
+                        "should" => [
                             ],
                         ],
                     ],
-                ],
+                ]
             ];
 
         $queryParams = [];
 
         foreach ($searchParams as $criteria => $value) {
-            if(in_array($criteria, $this->keywordArray)){
-                $temp =  array("terms" => array('data.'.$criteria.'.keyword' => (array)$value));
-            }
-            else{
-                $temp =  array("terms" => array('data.'.$criteria => (array)$value));
-            }
-
-            array_push($queryParams, ...[$temp]);
-
+            array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
         }
-        $params['body']['query']['bool']['must'] = $queryParams;
+
+        $params['body']['query']['bool']['should'] = $queryParams;
+
+        //dd($params);
 
         $results = $this->client->search($params);
 
@@ -375,7 +371,6 @@ class MainController extends AbstractController
 
         foreach ($searchParams as $criteria => $value) {
             $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2",);
-
         }
 
         $params['body']['query']['fuzzy'] = $queryParams;
