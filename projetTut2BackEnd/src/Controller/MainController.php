@@ -7,7 +7,7 @@ use App\Entity\Image;
 use App\Entity\Description;
 use App\Entity\Requirement;
 use Elasticsearch\Client;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -62,32 +62,11 @@ class MainController extends AbstractController
 
         $idgame = $result['_source']['data']['appid'];
 
-        $image = new Image();
-        $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-        if ($imageData['hits']['hits'] != null) {
-            $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-            $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
+        $image = $this->createImage($idgame);
 
-            $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-            $image->setId($imageData['hits']['hits'][0]['_id']);
-        }
+        $description = $this->createDescription($idgame);
 
-        $description = new Description();
-        $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-        if ($descriptionData['hits']['hits'] != null) {
-            $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-            $description->setId($descriptionData['hits']['hits'][0]['_id']);
-        }
-
-        $requirement = new Requirement();
-        $requirementData = json_decode($this->requirementsByGame($idgame)->getContent(), true);
-        if ($requirementData['hits']['hits'] != null) {
-//            dd($requirementData['hits']['hits'][0]['_source']['data']);
-            $requirement->hydrate($requirementData['hits']['hits'][0]['_source']['data']);
-            $requirement->setId($requirementData['hits']['hits'][0]['_id']);
-        }
+        $requirement = $this->createRequirement($idgame);
 
         $game = new Game();
         $game->hydrate($result['_source']['data']);
@@ -140,23 +119,9 @@ class MainController extends AbstractController
         foreach ($result['hits']['hits'] as $gameInfos){
             $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = new Image();
-            $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-            if ($imageData['hits']['hits'] != null){
-                $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
-                $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-                $image->setId($imageData['hits']['hits'][0]['_id']);
-            }
+            $image = $this->createImage($idgame);
 
-            $description = new Description();
-            $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-            if ($descriptionData['hits']['hits'] != null) {
-                $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-                $description->setId($descriptionData['hits']['hits'][0]['_id']);
-            }
+            $description = $this->createDescription($idgame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -208,23 +173,9 @@ class MainController extends AbstractController
         foreach ($result['hits']['hits'] as $gameInfos){
             $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = new Image();
-            $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
-            if ($imageData['hits']['hits'] != null) {
-                $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("True", "true", $imageData['hits']['hits'][0]['_source']['data']['movies']);
-                $imageData['hits']['hits'][0]['_source']['data']['movies'] = json_decode(str_replace("False", "false", $imageData['hits']['hits'][0]['_source']['data']['movies']), true);
-                $image->hydrate($imageData['hits']['hits'][0]['_source']['data']);
-                $image->setId($imageData['hits']['hits'][0]['_id']);
-            }
+            $image = $this->createImage($idgame);
 
-            $description = new Description();
-            $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
-            if ($descriptionData['hits']['hits'] != null) {
-                $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
-                $description->setId($descriptionData['hits']['hits'][0]['_id']);
-            }
+            $description = $this->createDescription($idgame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -249,75 +200,6 @@ class MainController extends AbstractController
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
-    }
-
-    /**
-     * @Route("/game/images/{appid}", name="images_by_game", methods={"GET"})
-     * @param string $appid
-     * @return JsonResponse
-     */
-    public function imagesByGame(string $appid): JsonResponse
-    {
-        $params = [
-            'index' => 'steam_media_data',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'data.steam_appid' => $appid
-                    ]
-                ]
-            ]
-        ];
-
-        $result = $this->client->search($params);
-
-        return new JsonResponse($result);
-    }
-
-    /**
-     * @Route("/game/descriptions/{appid}", name="descriptions_by_game", methods={"GET"})
-     * @param string $appid
-     * @return JsonResponse
-     */
-    public function descriptionsByGame(string $appid): JsonResponse
-    {
-        $params = [
-            'index' => 'steam_description_data',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'data.steam_appid' => $appid
-                    ]
-                ]
-            ]
-        ];
-
-        $results = $this->client->search($params);
-
-        return new JsonResponse($results);
-    }
-
-    /**
-     * @Route("/game/requirements/{appid}", name="requirements_by_game", methods={"GET"})
-     * @param string $appid
-     * @return JsonResponse
-     */
-    public function requirementsByGame(string $appid): JsonResponse
-    {
-        $params = [
-            'index' => 'steam_requirements_data',
-            'body' => [
-                'query' => [
-                    'match' => [
-                        'data.steam_appid' => $appid
-                    ]
-                ]
-            ]
-        ];
-
-        $results = $this->client->search($params);
-
-        return new JsonResponse($results);
     }
 
     /**
@@ -352,17 +234,7 @@ class MainController extends AbstractController
         $mustQueryParams = [];
 
         if(isset($searchParams['sorting'])){
-
-            $temp = explode('-', $searchParams['sorting']);
-            $criteria = $temp[0];
-            $order = $temp[1];
-
-            if(in_array($criteria, $this->keywordArray)){
-                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            }
-            else{
-                $params['sort'] = array('data.' . $criteria . ':' . $order);
-            }
+            $params['sort'] = setSorting($searchParams['sorting'], $this->keywordArray);
 
             unset($searchParams['sorting']);
         }
@@ -373,18 +245,8 @@ class MainController extends AbstractController
                 $specialParams = explode("+", $value);
 
                 foreach ($specialParams as $specialParam) {
-                    $chars = str_split($specialParam);
 
-                    $iterator = 0;
-    
-                    foreach($chars as $key => $char)
-                    {
-                        if(ctype_upper($char) && $key !== 0){
-                            array_splice($chars, $key+$iterator, 0, ' ' );
-                            $iterator++;
-                        }
-                    }
-                    $handledParam = implode("", $chars);
+                    $handledParam = $this->handleSpecialParams($specialParam);
     
                     array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$handledParam)));
                 }
@@ -431,18 +293,8 @@ class MainController extends AbstractController
                     $specialParams = explode("+", $value);
 
                     foreach ($specialParams as $specialParam) {
-                        $chars = str_split($specialParam);
 
-                        $iterator = 0;
-        
-                        foreach($chars as $key => $char)
-                        {
-                            if(ctype_upper($char) && $key !== 0){
-                                array_splice($chars, $key+$iterator, 0, ' ' );
-                                $iterator++;
-                            }
-                        }
-                        $handledParam = implode("", $chars);
+                        $handledParam = $this->handleSpecialParams($specialParam);
         
                         if(in_array($criteria ,$this->keywordArray)){
                             array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$handledParam)));
