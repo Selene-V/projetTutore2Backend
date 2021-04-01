@@ -24,6 +24,7 @@ class MainController extends AbstractController
     private Serializer $serializer;
     private array $keywordArray;
     private array $mustArray;
+    private array $specialHandleArray;
     private Client $client;
 
     /**
@@ -38,9 +39,11 @@ class MainController extends AbstractController
 
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
-        $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
+        $this->keywordArray = ["name", "categories", "developer", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
         $this->mustArray = ["categories", "genres"];
+
+        $this->specialHandleArray = ["developer", "publisher", "categories", "genres", "steamspy_tags"];
     }
 
     /**
@@ -333,8 +336,6 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
-        dd($searchParams);
-
         $params = [
             "index" => "steam",
             "body" => [
@@ -368,7 +369,25 @@ class MainController extends AbstractController
 
         foreach ($searchParams as $criteria => $value) {
             if(in_array($criteria ,$this->mustArray)){ //bloc critères ET logique, must dans la requête
-                array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$value)));
+
+                $specialParams = explode("+", $value);
+
+                foreach ($specialParams as $specialParam) {
+                    $chars = str_split($specialParam);
+
+                    $iterator = 0;
+    
+                    foreach($chars as $key => $char)
+                    {
+                        if(ctype_upper($char) && $key !== 0){
+                            array_splice($chars, $key+$iterator, 0, ' ' );
+                            $iterator++;
+                        }
+                    }
+                    $handledParam = implode("", $chars);
+    
+                    array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$handledParam)));
+                }
             }
             else{ //block critères OU logique, should dans la requête
                 if($criteria === "release_date" && strlen($value) === 4){
@@ -406,6 +425,32 @@ class MainController extends AbstractController
                             }
                             break;
                         }
+                }
+                else if (in_array($criteria,$this->specialHandleArray)) {
+
+                    $specialParams = explode("+", $value);
+
+                    foreach ($specialParams as $specialParam) {
+                        $chars = str_split($specialParam);
+
+                        $iterator = 0;
+        
+                        foreach($chars as $key => $char)
+                        {
+                            if(ctype_upper($char) && $key !== 0){
+                                array_splice($chars, $key+$iterator, 0, ' ' );
+                                $iterator++;
+                            }
+                        }
+                        $handledParam = implode("", $chars);
+        
+                        if(in_array($criteria ,$this->keywordArray)){
+                            array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$handledParam)));
+                        }
+                        else{
+                            array_push($shouldQueryParams, array("terms" => array('data.'.$criteria =>  (array)$handledParam)));
+                        }
+                    }
                 }
                 else{
                     if(in_array($criteria ,$this->keywordArray)){
