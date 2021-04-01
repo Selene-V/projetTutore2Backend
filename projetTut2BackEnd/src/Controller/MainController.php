@@ -333,6 +333,8 @@ class MainController extends AbstractController
             $searchParams[$param[0]] = $param[1] ;
         }
 
+        dd($searchParams);
+
         $params = [
             "index" => "steam",
             "body" => [
@@ -368,9 +370,12 @@ class MainController extends AbstractController
             if(in_array($criteria ,$this->mustArray)){ //bloc critères ET logique, must dans la requête
                 array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$value)));
             }
-            else if($criteria !== "isAnd"){ //block critères OU logique, should + match dans la requête
+            else{ //block critères OU logique, should dans la requête
                 if($criteria === "release_date" && strlen($value) === 4){
                     $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y" ));
+                }
+                else if ($criteria === "name") {
+                    array_push($shouldQueryParams, array("match" => array('data.'.$criteria => $value)));
                 }
                 else if($criteria === "release_date_begin" || $criteria ==="release_date_end"){
                     switch ($criteria) {
@@ -378,25 +383,49 @@ class MainController extends AbstractController
                             $releaseDateBegin = $value;
                             break;
                         case 'release_date_end':
-                            echo $releaseDateBegin . '<br>';
-                            echo $value;
-                            $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
-                            break;
-                        default:
+                            if(!isset($range)){
+                                $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
+                            }
+                            else{
+                                $range['data.release_date'] = array("gte" => $releaseDateBegin, "lte" => $value);
+                            }
                             break;
                     }
                 }
+                else if($criteria === "review_rate_low" || $criteria === "review_rate_high"){
+                    switch ($criteria) {
+                        case 'review_rate_low':
+                            $reviewRateLow = $value;
+                            break;
+                        case 'review_rate_high':
+                            if(!isset($range)){
+                                $range = array("data.positive_review_percentage" => array("gte" => $reviewRateLow, "lte" => $value));
+                            }
+                            else{
+                                $range['data.positive_review_percentage'] = array("gte" => $reviewRateLow, "lte" => $value);
+                            }
+                            break;
+                        }
+                }
                 else{
-                    array_push($shouldQueryParams, array("match" => array('data.'.$criteria => $value)));
+                    if(in_array($criteria ,$this->keywordArray)){
+                        array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$value)));
+                    }
+                    else{
+                        array_push($shouldQueryParams, array("terms" => array('data.'.$criteria =>  (array)$value)));
+                    }
                 }
             }
         }
 
         $params['body']['query']['bool']['should'] = $shouldQueryParams;
         $params['body']['query']['bool']['must'] = $mustQueryParams;
+
         if(isset($range)){
             array_push($params['body']['query']['bool']['should'], array("range" => $range));
         }
+
+        ///dd($range);
 
        //dd($params);
 
