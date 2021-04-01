@@ -142,4 +142,17 @@ class AbstractController
 
         return new JsonResponse($results);
     }
+
+    protected function parseRequestContent(string $requestContent)
+    {
+        $searchParams = [];
+
+        foreach (explode('&', $requestContent) as $chunk) {
+            $param = explode("=", $chunk);
+
+            $searchParams[$param[0]] = $param[1] ;
+        }
+
+        return $searchParams;
+    }
 }

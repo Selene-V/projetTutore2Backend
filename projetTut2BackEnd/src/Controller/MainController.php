@@ -204,11 +204,7 @@ class MainController extends AbstractController
 
         $requestContent = $request->getContent();
 
-        foreach (explode('&', $requestContent) as $chunk) {
-            $param = explode("=", $chunk);
-
-            $searchParams[$param[0]] = $param[1] ;
-        }
+        $searchParams = $this->parseRequestContent($requestContent);
 
         $params = [
             "index" => "steam",
@@ -333,13 +329,7 @@ class MainController extends AbstractController
 
         $requestContent = $request->getContent();
 
-        $searchParams = [];
-
-        foreach (explode('&', $requestContent) as $chunk) {
-            $param = explode("=", $chunk);
-
-            $searchParams[$param[0]] = $param[1] ;
-        }
+        $searchParams = $this->parseRequestContent($requestContent);
 
         $params = [
             'index' => 'steam',
