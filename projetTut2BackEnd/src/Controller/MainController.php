@@ -23,6 +23,7 @@ class MainController extends AbstractController
     private array $normalizers;
     private Serializer $serializer;
     private array $keywordArray;
+    private array $mustArray;
     private Client $client;
 
     /**
@@ -38,6 +39,8 @@ class MainController extends AbstractController
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
         $this->keywordArray = ["name", "categories", "developper", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
+
+        $this->mustArray = ["categories", "genres"];
     }
 
     /**
@@ -335,36 +338,60 @@ class MainController extends AbstractController
                 ]
             ];
 
-        $queryParams = [];
+        $shouldQueryParams = [];
+        $mustQueryParams = [];
 
-        foreach ($searchParams as $criteria => $value) {
-            if($criteria === "release_date" && strlen($value) === 4){
-                $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y" ));
-            }
-            else if($criteria === "release_date_begin" || $criteria ==="release_date_end"){
-                switch ($criteria) {
-                    case 'release_date_begin':
-                        $releaseDateBegin = $value;
-                        break;
-                    case 'release_date_end':
-                        echo $releaseDateBegin . '<br>';
-                        echo $value;
-                        $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
-                        break;
-                    default:
-                        break;
-                }
+        if(isset($searchParams['sorting'])){
+
+            $temp = explode('-', $searchParams['sorting']);
+            $criteria = $temp[0];
+            $order = $temp[1];
+
+            if(in_array($criteria, $this->keywordArray)){
+                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
             }
             else{
-                array_push($queryParams, array("match" => array('data.'.$criteria => $value)));
+                $params['sort'] = array('data.' . $criteria . ':' . $order);
+            }
+
+            unset($searchParams['sorting']);
+        }
+
+        foreach ($searchParams as $criteria => $value) {
+            if(in_array($criteria ,$this->mustArray)){ //bloc critères ET logique, must dans la requête
+                array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$value)));
+            }
+            else if($criteria !== "isAnd"){ //block critères OU logique, should + match dans la requête
+                if($criteria === "release_date" && strlen($value) === 4){
+                    $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y" ));
+                }
+                else if($criteria === "release_date_begin" || $criteria ==="release_date_end"){
+                    switch ($criteria) {
+                        case 'release_date_begin':
+                            $releaseDateBegin = $value;
+                            break;
+                        case 'release_date_end':
+                            echo $releaseDateBegin . '<br>';
+                            echo $value;
+                            $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else{
+                    array_push($shouldQueryParams, array("match" => array('data.'.$criteria => $value)));
+                }
             }
         }
 
-        $params['body']['query']['bool']['should'] = $queryParams;
+        $params['body']['query']['bool']['should'] = $shouldQueryParams;
+        $params['body']['query']['bool']['must'] = $mustQueryParams;
         if(isset($range)){
             array_push($params['body']['query']['bool']['should'], array("range" => $range));
         }
-        //dd($params);
+
+       //dd($params);
 
         $results = $this->client->search($params);
 
@@ -398,7 +425,6 @@ class MainController extends AbstractController
                 ]
             ]
         ];
-
 
         $queryParams = [];
 
