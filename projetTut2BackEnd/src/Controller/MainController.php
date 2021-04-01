@@ -310,13 +310,25 @@ class MainController extends AbstractController
             array_push($params['body']['query']['bool']['should'], array("range" => $range));
         }
 
-        ///dd($range);
-
-       //dd($params);
-
         $results = $this->client->search($params);
 
-        return new JsonResponse($results);
+        $games = ['games' => []];
+        foreach ($results['hits']['hits'] as $gameInfos){
+            $idgame = $gameInfos['_source']['data']['appid'];
+
+            $image = $this->createImage($idgame);
+
+            $description = $this->createDescription($idgame);
+
+            $game = new Game();
+            $game->hydrate($gameInfos['_source']['data']);
+            $game->setImage($image);
+            $game->setDescription($description);
+            $game->setId($gameInfos['_id']);
+            array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
+        }
+
+        return new JsonResponse($games);
     }
 
     /**
