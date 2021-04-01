@@ -206,8 +206,16 @@ class MainController extends AbstractController
 
         $searchParams = $this->parseRequestContent($requestContent);
 
+        $gamesByPage = 8;
+        $page = 1;
+        if ($page < 1) {
+            $page = 1;
+        }
+
         $params = [
             "index" => "steam",
+            'size' => $gamesByPage,
+            'from' => ($page-1)*$gamesByPage,
             "body" => [
                 "query" => [
                     "bool" => [
@@ -327,6 +335,13 @@ class MainController extends AbstractController
             $game->setId($gameInfos['_id']);
             array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
         }
+        $params2 = $params;
+        unset($params2['from']);
+        unset($params2['size']);
+
+        $totalGames = $this->client->count($params2);
+
+        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
     }
