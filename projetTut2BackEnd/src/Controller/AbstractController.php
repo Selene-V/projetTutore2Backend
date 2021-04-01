@@ -7,16 +7,18 @@ use App\Entity\Description;
 use App\Entity\Requirement;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class AbstractController
 {
-    private Client $client;
+    protected Client $client;
 
     public function __construct(){
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
     }
 
-    protected function createImage(int $idgame){
+    protected function createImage(int $idgame): Image
+    {
         $image = new Image();
         $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
         if ($imageData['hits']['hits'] != null) {
@@ -32,7 +34,8 @@ class AbstractController
         return $image;
     }
 
-    protected function createDescription(int $idgame){
+    protected function createDescription(int $idgame): Description
+    {
         $description = new Description();
         $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
         if ($descriptionData['hits']['hits'] != null) {
@@ -43,7 +46,8 @@ class AbstractController
         return $description;
     }
 
-    protected function createRequirement(int $idgame){
+    protected function createRequirement(int $idgame): Requirement
+    {
         $requirement = new Requirement();
         $requirementData = json_decode($this->requirementsByGame($idgame)->getContent(), true);
         if ($requirementData['hits']['hits'] != null) {
@@ -54,8 +58,9 @@ class AbstractController
         return $requirement;
     }
 
-    protected function setSorting($sorting, $keywordArray){
-        $temp = explode('-', $searchParams['sorting']);
+    protected function setSorting($sorting, $keywordArray): array
+    {
+        $temp = explode('-', $sorting);
         $criteria = $temp[0];
         $order = $temp[1];
 
@@ -68,7 +73,8 @@ class AbstractController
 
     }
 
-    protected function handleSpecialParams($specialParam){
+    protected function handleSpecialParams($specialParam): string
+    {
         $chars = str_split($specialParam);
 
             $iterator = 0;
@@ -80,9 +86,7 @@ class AbstractController
                     $iterator++;
                 }
             }
-            $handledParam = implode("", $chars);
-
-            return $handledParam;
+        return implode("", $chars);
     }
 
     private function imagesByGame(string $appid): JsonResponse
@@ -138,5 +142,4 @@ class AbstractController
 
         return new JsonResponse($results);
     }
-
 }

@@ -3,13 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Game;
-use App\Entity\Image;
-use App\Entity\Description;
-use App\Entity\Requirement;
-use Elasticsearch\Client;
-use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
-use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -25,19 +19,17 @@ class MainController extends AbstractController
     private array $keywordArray;
     private array $mustArray;
     private array $specialHandleArray;
-    private Client $client;
 
     /**
      * MainController constructor.
      */
     public function __construct()
     {
+        parent::__construct();
         $this->encoders = [new XmlEncoder(), new JsonEncoder()];
         $this->normalizers = [new ObjectNormalizer()];
 
         $this->serializer = new Serializer($this->normalizers, $this->encoders);
-
-        $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
 
         $this->keywordArray = ["name", "categories", "developer", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
@@ -234,7 +226,7 @@ class MainController extends AbstractController
         $mustQueryParams = [];
 
         if(isset($searchParams['sorting'])){
-            $params['sort'] = setSorting($searchParams['sorting'], $this->keywordArray);
+            $params['sort'] = $this->setSorting($searchParams['sorting'], $this->keywordArray);
 
             unset($searchParams['sorting']);
         }
