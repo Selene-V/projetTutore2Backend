@@ -12,23 +12,34 @@ function createBDD(file) {
         .pipe(csv.parse({ headers: true }))
         .on("data", function (dataFile) {
           let data = {};
+          let negativeRatings = 0;
+          let positiveRatings = 0;
 
           for (let [key, value] of Object.entries(dataFile)) {
             if (keyToChangeValue.includes(key)){
               value = value.split(';');
             }
+            // Comme le prix n'est pas utile ici, nous ne l'ajoutons pas à la db
             if (key === "price") {
               continue;
             }
             if (!isNaN(value)) {
               value = parseInt(value);
             }
+            if (file === 'steam'){
+                if (key === "negative_ratings"){
+                    negativeRatings = value;
+                }
+                if (key === "positive_ratings"){
+                    positiveRatings = value;
+                }
+            }
+
             data[key] = value;
-              // if (file === 'steam'){
-              //     console.log(data);
-              // }
           }
-          // const dataJson = JSON.stringify(dataOk);
+            if (file === 'steam') {
+                data['positive_review_percentage'] = Math.round((positiveRatings / (positiveRatings + negativeRatings) * 100) * 100) / 100;
+            }
           // Let's start by indexing some data
           inserts.push(
               client.index({
