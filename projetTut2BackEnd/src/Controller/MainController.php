@@ -207,7 +207,8 @@ class MainController extends AbstractController
         $searchParams = $this->parseRequestContent($requestContent);
 
         $gamesByPage = 8;
-        $page = 1;
+        $page = $searchParams['page'];
+        unset($searchParams['page']);
         if ($page < 1) {
             $page = 1;
         }
