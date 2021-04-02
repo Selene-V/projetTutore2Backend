@@ -339,6 +339,7 @@ class MainController extends AbstractController
         $params2 = $params;
         unset($params2['from']);
         unset($params2['size']);
+        unset($params2['sort']);
 
         $totalGames = $this->client->count($params2);
 
