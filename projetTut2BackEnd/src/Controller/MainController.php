@@ -383,5 +383,36 @@ class MainController extends AbstractController
         return new JsonResponse($results);
     }
 
+    /**
+     * @Route("/autocomplete", name="autocomplete", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function autocomplete(Request $request):JsonResponse
+    {
+
+        $requestContent = $request->getContent();
+
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $params = [
+            'index' => 'steam',
+            'body' => [
+                'suggest' => [
+                    'autocomplete' => [
+                        'text' => $searchParams['name'],
+                        'term' => [
+                            'field' => 'data.name.keyword',
+                        ]
+                    ]
+                ],
+                'size' => 5
+            ]
+        ];
+
+        $results = $this->client->search($params);
+
+        return new JsonResponse($results);
+    }
     
 }
