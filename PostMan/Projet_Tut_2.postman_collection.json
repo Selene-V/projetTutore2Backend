@@ -1,0 +1,51 @@
+{
+	"info": {
+		"_postman_id": "c1acf993-8dc0-44e5-af5a-85cc55465c4e",
+		"name": "Projet_Tut_2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Recherche Avancée",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "QUAKE",
+							"description": "nom d'un jeu",
+							"type": "text"
+						},
+						{
+							"key": "appid",
+							"value": "1640",
+							"description": "appid du jeu Disciples II: Gallean's Return",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "appid",
+							"value": "2310",
+							"description": "appid du jeu Quake",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{url}}/advancedSearch",
+					"protocol": "http",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"advancedSearch"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
