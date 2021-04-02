@@ -77,13 +77,10 @@ class AbstractController
     {
         $chars = str_split($specialParam);
 
-            $iterator = 0;
-    
             foreach($chars as $key => $char)
             {
-                if(ctype_upper($char) && $key !== 0){
-                    array_splice($chars, $key+$iterator, 0, ' ' );
-                    $iterator++;
+                if($char === "~" && $key !== 0){
+                    $chars[$key] = " ";
                 }
             }
         return implode("", $chars);
