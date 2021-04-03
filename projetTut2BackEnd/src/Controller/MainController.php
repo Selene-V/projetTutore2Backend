@@ -355,7 +355,6 @@ class MainController extends AbstractController
      */
     public function fuzzySearch(Request $request): JsonResponse
     {
-
         $requestContent = $request->getContent();
 
         $searchParams = $this->parseRequestContent($requestContent);
@@ -374,8 +373,10 @@ class MainController extends AbstractController
 
         $fuzzyQueryParams = [];
         $wildcardQueryParams = [];
+        $savedCriteria;
 
         foreach ($searchParams as $criteria => $value) {
+            $savedCriteria = $criteria;
             $fuzzyQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
             $wildcardQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value . "*");
         }
@@ -385,7 +386,19 @@ class MainController extends AbstractController
 
         $results = $this->client->search($params);
 
-        return new JsonResponse($results);
+        $trimmedResult = [];
+
+        foreach ($results["hits"]["hits"] as $key => $value) {
+            foreach ($value["_source"] as $key => $value2) {
+                $game = new Game();
+                $game->hydrate($value2);
+            }
+            array_push($trimmedResult, call_user_func(array($game, "get".ucfirst($savedCriteria))));
+        }
+
+        dd($trimmedResult);
+
+        return new JsonResponse($trimmedResult);
     }
 
     
