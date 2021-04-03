@@ -364,19 +364,24 @@ class MainController extends AbstractController
             'index' => 'steam',
             'body' => [
                 'query' => [
-                    'fuzzy' => [
+                    'bool' =>[
+                        'should' => [
+                        ]
                     ]
                 ]
             ]
         ];
 
-        $queryParams = [];
+        $fuzzyQueryParams = [];
+        $wildcardQueryParams = [];
 
         foreach ($searchParams as $criteria => $value) {
-            $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2",);
+            $fuzzyQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
+            $wildcardQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value . "*");
         }
 
-        $params['body']['query']['fuzzy'] = $queryParams;
+        $params['body']['query']['bool']['should'][]['fuzzy'] = $fuzzyQueryParams;
+        $params['body']['query']['bool']['should'][]['wildcard'] = $wildcardQueryParams;
 
         $results = $this->client->search($params);
 
