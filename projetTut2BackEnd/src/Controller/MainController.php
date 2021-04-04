@@ -355,7 +355,6 @@ class MainController extends AbstractController
      */
     public function fuzzySearch(Request $request): JsonResponse
     {
-
         $requestContent = $request->getContent();
 
         $searchParams = $this->parseRequestContent($requestContent);
@@ -364,55 +363,42 @@ class MainController extends AbstractController
             'index' => 'steam',
             'body' => [
                 'query' => [
-                    'fuzzy' => [
+                    'bool' =>[
+                        'should' => [
+                        ]
                     ]
                 ]
             ]
         ];
 
-        $queryParams = [];
+        $fuzzyQueryParams = [];
+        $wildcardQueryParams = [];
+        $savedCriteria;
 
         foreach ($searchParams as $criteria => $value) {
-            $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2",);
+            $savedCriteria = $criteria;
+            $fuzzyQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
+            $wildcardQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value . "*");
         }
 
-        $params['body']['query']['fuzzy'] = $queryParams;
+        $params['body']['query']['bool']['should'][]['fuzzy'] = $fuzzyQueryParams;
+        $params['body']['query']['bool']['should'][]['wildcard'] = $wildcardQueryParams;
 
         $results = $this->client->search($params);
 
-        return new JsonResponse($results);
-    }
+        $trimmedResult = [];
 
-    /**
-     * @Route("/autocomplete", name="autocomplete", methods={"POST"})
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function autocomplete(Request $request):JsonResponse
-    {
+        foreach ($results["hits"]["hits"] as $key => $value) {
+            foreach ($value["_source"] as $key => $value2) {
+                $game = new Game();
+                $game->hydrate($value2);
+            }
+            array_push($trimmedResult, call_user_func(array($game, "get".ucfirst($savedCriteria))));
+        }
 
-        $requestContent = $request->getContent();
+        dd($trimmedResult);
 
-        $searchParams = $this->parseRequestContent($requestContent);
-
-        $params = [
-            'index' => 'steam',
-            'body' => [
-                'suggest' => [
-                    'autocomplete' => [
-                        'text' => $searchParams['name'],
-                        'term' => [
-                            'field' => 'data.name.keyword',
-                        ]
-                    ]
-                ],
-                'size' => 5
-            ]
-        ];
-
-        $results = $this->client->search($params);
-
-        return new JsonResponse($results);
+        return new JsonResponse($trimmedResult);
     }
     
 }
