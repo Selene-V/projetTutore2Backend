@@ -8,55 +8,60 @@ function createBDD(file) {
     console.log("Creating index", file);
     let inserts = [];
     const stream = fs
-        .createReadStream("CSV/" + file + ".csv")
-        .pipe(csv.parse({ headers: true }))
-        .on("data", function (dataFile) {
-          let data = {};
-          let negativeRatings = 0;
-          let positiveRatings = 0;
+      .createReadStream("CSV/" + file + ".csv")
+      .pipe(csv.parse({ headers: true }))
+      .on("data", function (dataFile) {
+        let data = {};
+        let negativeRatings = 0;
+        let positiveRatings = 0;
 
-          for (let [key, value] of Object.entries(dataFile)) {
-            if (keyToChangeValue.includes(key)){
-              value = value.split(';');
-            }
-            // Comme le prix n'est pas utile ici, nous ne l'ajoutons pas à la db
-            if (key === "price") {
-              continue;
-            }
-            if (!isNaN(value)) {
-              value = parseInt(value);
-            }
-            if (file === 'steam'){
-                if (key === "negative_ratings"){
-                    negativeRatings = value;
-                }
-                if (key === "positive_ratings"){
-                    positiveRatings = value;
-                }
-            }
-
-            data[key] = value;
+        for (let [key, value] of Object.entries(dataFile)) {
+          if (keyToChangeValue.includes(key)) {
+            value = value.split(";");
           }
-            if (file === 'steam') {
-                data['positive_review_percentage'] = Math.round((positiveRatings / (positiveRatings + negativeRatings) * 100) * 100) / 100;
+          // Comme le prix n'est pas utile ici, nous ne l'ajoutons pas Ã  la db
+          if (key === "price") {
+            continue;
+          }
+          if (!isNaN(value)) {
+            value = parseInt(value);
+          }
+          if (file === "steam") {
+            if (key === "negative_ratings") {
+              negativeRatings = value;
             }
-          // Let's start by indexing some data
-          inserts.push(
-              client.index({
-                index: file,
-                body: {
-                  data,
-                },
-              })
-          );
-        })
-        .on("end", async function () {
-          console.log("Read finish", file);
-          console.log("Waiting for inserts to finish...");
-          await Promise.all(inserts);
-          console.log("Inserts finished", file);
-          resolve();
-        });
+            if (key === "positive_ratings") {
+              positiveRatings = value;
+            }
+          }
+
+          data[key] = value;
+        }
+        if (file === "steam") {
+          data["positive_review_percentage"] =
+            Math.round(
+              (positiveRatings / (positiveRatings + negativeRatings)) *
+                100 *
+                100
+            ) / 100;
+        }
+        // Let's start by indexing some data
+        inserts.push(
+          client.index({
+            index: file,
+            body: {
+              data,
+            },
+          })
+        );
+      })
+      .on("end", async function () {
+        console.log("Read finish", file);
+        console.log("Waiting for inserts to finish...");
+        await Promise.all(inserts);
+        console.log("Inserts finished", file);
+        resolve();
+      });
   });
 }
 
@@ -70,13 +75,13 @@ const indexes = [
 ];
 
 const keyToChangeValue = [
-    "developer",
-    "publisher",
-    "platforms",
-    "categories",
-    "genres",
-    "steamspy_tags"
-]
+  "developer",
+  "publisher",
+  "platforms",
+  "categories",
+  "genres",
+  "steamspy_tags",
+];
 
 async function purgeDB() {
   console.log("Purging current indexes if they exist");

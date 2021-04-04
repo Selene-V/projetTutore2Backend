@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 
 class MainController extends AbstractController
 {
@@ -188,7 +189,7 @@ class MainController extends AbstractController
         ];
 
         $totalGames = $this->client->count($params2);
-        
+
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
@@ -244,7 +245,7 @@ class MainController extends AbstractController
                 foreach ($specialParams as $specialParam) {
 
                     $handledParam = $this->handleSpecialParams($specialParam);
-    
+
                     array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$handledParam)));
                 }
             }
@@ -292,7 +293,7 @@ class MainController extends AbstractController
                     foreach ($specialParams as $specialParam) {
 
                         $handledParam = $this->handleSpecialParams($specialParam);
-        
+
                         if(in_array($criteria ,$this->keywordArray)){
                             array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$handledParam)));
                         }
@@ -355,33 +356,65 @@ class MainController extends AbstractController
      */
     public function fuzzySearch(Request $request): JsonResponse
     {
-
         $requestContent = $request->getContent();
 
         $searchParams = $this->parseRequestContent($requestContent);
 
         $params = [
             'index' => 'steam',
+            'size' => 150,
             'body' => [
                 'query' => [
-                    'fuzzy' => [
+                    'bool' =>[
+                        'should' => [
+                        ]
                     ]
                 ]
             ]
         ];
 
-        $queryParams = [];
+        $fuzzyQueryParams = [];
+        $wildcardQueryParams = [];
+        $savedCriteria = null;
 
         foreach ($searchParams as $criteria => $value) {
-            $queryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2",);
+            $savedCriteria = $criteria;
+            $fuzzyQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
+            $wildcardQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value . "*");
         }
 
-        $params['body']['query']['fuzzy'] = $queryParams;
+        $params['body']['query']['bool']['should'][]['fuzzy'] = $fuzzyQueryParams;
+        $params['body']['query']['bool']['should'][]['wildcard'] = $wildcardQueryParams;
 
         $results = $this->client->search($params);
 
-        return new JsonResponse($results);
+        $trimmedResult = [];
+
+        foreach ($results["hits"]["hits"] as $key => $value) {
+            foreach ($value["_source"] as $key2 => $value2) {
+                $game = new Game();
+                $game->hydrate($value2);
+            }
+
+            $savedCriteriaTab = explode('_', ''.$savedCriteria);
+            $savedCriteriaOk = '';
+            foreach ($savedCriteriaTab as $key3 => $value3) {
+                $savedCriteriaTab[$key3] = ucfirst($value3);
+                $savedCriteriaOk = $savedCriteriaOk . $savedCriteriaTab[$key3];
+            }
+
+            array_push($trimmedResult, call_user_func(array($game, "get".$savedCriteriaOk)));
+        }
+
+        $mergedResults = [];
+
+        foreach ($trimmedResult as $key => $value){
+            $mergedResults = array_merge((array)$mergedResults, (array)$value);
+        }
+
+        $mergedResults = array_unique($mergedResults);
+
+        return new JsonResponse($mergedResults);
     }
 
-    
 }
