@@ -135,7 +135,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/gameByName/{name}/{page}", name="gameByName", methods={"GET"})
+     * @Route("/gameByName/{name}/{page}", name="game_by_name", methods={"GET"})
      * @param string $name
      * @param int $page
      * @return JsonResponse
@@ -196,7 +196,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/advancedSearch", name="advancedSearch", methods={"POST"})
+     * @Route("/advancedSearch", name="advanced_search", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
@@ -350,7 +350,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/fuzzySearch", name="fuzzySearch", methods={"POST"})
+     * @Route("/fuzzySearch", name="fuzzy_search", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
@@ -417,4 +417,80 @@ class MainController extends AbstractController
         return new JsonResponse($mergedResults);
     }
 
+    /**
+     * @Route("/relatedGames", name="related_games", methods={"POST"})
+     * @param Request $request
+     * @param array $tagsList
+     * @return JsonResponse
+     */
+    public function relatedGames(Request $request, array $tagsList): JsonResponse
+    {
+
+    }
+
+    /**
+     * @Route("/gamesByTags", name="games_by_tags", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function researchByTagWeight(Request $request): JsonResponse
+    {
+        $requestContent = $request->getContent();
+
+        $searchParams = $this->parseRequestContent($requestContent);
+var_dump($searchParams);die;
+        $params = [
+            "index" => "steamspy_tag_data",
+            "body" => [
+                "query" => [
+                    "bool" => [
+                        "must" => [
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+//        if(isset($searchParams['sorting'])){
+//            $params['sort'] = $this->setSorting($searchParams['sorting'], $this->keywordArray);
+//
+//            unset($searchParams['sorting']);
+//        }
+
+        $mustQueryParams = [];
+
+        $searchParamsTab = explode("+", $searchParams);
+
+        foreach ($searchParamsTab as $searchParam) {
+
+            $handledParam = $this->handleSpecialParams($searchParam);
+
+            array_push($mustQueryParams, array("match" => array('data.steamspy_tags' => $value)));
+
+        }
+
+        $params['body']['query']['bool']['must'] = $mustQueryParams;
+
+        $results = $this->client->search($params);
+
+        dd($results);
+
+        $games = ['games' => []];
+        foreach ($results['hits']['hits'] as $gameInfos){
+            $idgame = $gameInfos['_source']['data']['appid'];
+
+            $image = $this->createImage($idgame);
+
+            $description = $this->createDescription($idgame);
+
+            $game = new Game();
+            $game->hydrate($gameInfos['_source']['data']);
+            $game->setImage($image);
+            $game->setDescription($description);
+            $game->setId($gameInfos['_id']);
+            array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
+        }
+
+        return new JsonResponse($games);
+    }
 }
