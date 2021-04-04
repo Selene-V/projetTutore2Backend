@@ -438,42 +438,34 @@ class MainController extends AbstractController
         $requestContent = $request->getContent();
 
         $searchParams = $this->parseRequestContent($requestContent);
-var_dump($searchParams);die;
+
         $params = [
-            "index" => "steamspy_tag_data",
+            "index" => "steam",
             "body" => [
                 "query" => [
                     "bool" => [
-                        "must" => [
+                        "should" => [
                         ],
                     ],
                 ],
             ]
         ];
 
-//        if(isset($searchParams['sorting'])){
-//            $params['sort'] = $this->setSorting($searchParams['sorting'], $this->keywordArray);
-//
-//            unset($searchParams['sorting']);
-//        }
-
         $mustQueryParams = [];
 
-        $searchParamsTab = explode("+", $searchParams);
+        $searchParamsTab = explode("+", $searchParams['steamspy_tags']);
 
         foreach ($searchParamsTab as $searchParam) {
 
             $handledParam = $this->handleSpecialParams($searchParam);
 
-            array_push($mustQueryParams, array("match" => array('data.steamspy_tags' => $value)));
+            array_push($mustQueryParams, array("terms" => array('data.steamspy_tags.keyword' => (array)$handledParam)));
 
         }
 
-        $params['body']['query']['bool']['must'] = $mustQueryParams;
+        $params['body']['query']['bool']['should'] = $mustQueryParams;
 
         $results = $this->client->search($params);
-
-        dd($results);
 
         $games = ['games' => []];
         foreach ($results['hits']['hits'] as $gameInfos){
