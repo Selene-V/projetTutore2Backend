@@ -21,6 +21,9 @@ trait HydrationTrait
                 if ($setterName === 'setReleaseDate'){
                     $value = new DateTime($value);
                 }
+                if (($setterName === 'setDeveloper') && (gettype($value) !== "array")){
+                    $value = [$value];
+                }
                 $this->$setterName($value);
             }
         }

@@ -189,7 +189,7 @@ class MainController extends AbstractController
         ];
 
         $totalGames = $this->client->count($params2);
-        
+
         $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
 
         return new JsonResponse($games);
@@ -245,7 +245,7 @@ class MainController extends AbstractController
                 foreach ($specialParams as $specialParam) {
 
                     $handledParam = $this->handleSpecialParams($specialParam);
-    
+
                     array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$handledParam)));
                 }
             }
@@ -293,7 +293,7 @@ class MainController extends AbstractController
                     foreach ($specialParams as $specialParam) {
 
                         $handledParam = $this->handleSpecialParams($specialParam);
-        
+
                         if(in_array($criteria ,$this->keywordArray)){
                             array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$handledParam)));
                         }
@@ -395,7 +395,15 @@ class MainController extends AbstractController
                 $game = new Game();
                 $game->hydrate($value2);
             }
-            array_push($trimmedResult, call_user_func(array($game, "get".ucfirst($savedCriteria))));
+
+            $savedCriteriaTab = explode('_', ''.$savedCriteria);
+            $savedCriteriaOk = '';
+            foreach ($savedCriteriaTab as $key3 => $value3) {
+                $savedCriteriaTab[$key3] = ucfirst($value3);
+                $savedCriteriaOk = $savedCriteriaOk . $savedCriteriaTab[$key3];
+            }
+
+            array_push($trimmedResult, call_user_func(array($game, "get".$savedCriteriaOk)));
         }
 
         $mergedResults = [];
@@ -408,5 +416,5 @@ class MainController extends AbstractController
 
         return new JsonResponse($mergedResults);
     }
-    
+
 }
