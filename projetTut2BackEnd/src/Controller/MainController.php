@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 
 class MainController extends AbstractController
 {
@@ -361,6 +362,7 @@ class MainController extends AbstractController
 
         $params = [
             'index' => 'steam',
+            'size' => 150,
             'body' => [
                 'query' => [
                     'bool' =>[
@@ -373,7 +375,7 @@ class MainController extends AbstractController
 
         $fuzzyQueryParams = [];
         $wildcardQueryParams = [];
-        $savedCriteria;
+        $savedCriteria = null;
 
         foreach ($searchParams as $criteria => $value) {
             $savedCriteria = $criteria;
@@ -389,16 +391,22 @@ class MainController extends AbstractController
         $trimmedResult = [];
 
         foreach ($results["hits"]["hits"] as $key => $value) {
-            foreach ($value["_source"] as $key => $value2) {
+            foreach ($value["_source"] as $key2 => $value2) {
                 $game = new Game();
                 $game->hydrate($value2);
             }
             array_push($trimmedResult, call_user_func(array($game, "get".ucfirst($savedCriteria))));
         }
 
-        dd($trimmedResult);
+        $mergedResults = [];
 
-        return new JsonResponse($trimmedResult);
+        foreach ($trimmedResult as $key => $value){
+            $mergedResults = array_merge((array)$mergedResults, (array)$value);
+        }
+
+        $mergedResults = array_unique($mergedResults);
+
+        return new JsonResponse($mergedResults);
     }
     
 }
