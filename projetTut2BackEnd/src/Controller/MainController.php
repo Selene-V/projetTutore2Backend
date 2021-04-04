@@ -453,16 +453,18 @@ class MainController extends AbstractController
 
         $shouldQueryParams = [];
 
-        $tags = $this->tagWeightByGame($searchParams['appid']);
+        $tags = json_decode($this->tagWeightByGame($searchParams['appid'])->getContent(), true);
 
-        dd($tags);
+        foreach ($tags as $key => $tag) {
+            $key = str_replace("_"," ",$key);
 
-        foreach ($tags as $tag) {
-            array_push($shouldQueryParams, array("term" => array('data.steamspy_tags.keyword' => $tag)));
+            $key = ucwords($key);
+
+            array_push($shouldQueryParams, array("match" => array('data.steamspy_tags' => $key)));
         }
 
         $params['body']['query']['bool']['should'] = $shouldQueryParams;
-        dd($params);
+        //dd($params);
 
         $results = $this->client->search($params);
 
