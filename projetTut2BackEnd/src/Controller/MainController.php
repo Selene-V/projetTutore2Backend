@@ -440,11 +440,11 @@ class MainController extends AbstractController
         $searchParams = $this->parseRequestContent($requestContent);
 var_dump($searchParams);die;
         $params = [
-            "index" => "steamspy_tag_data",
+            "index" => "steam",
             "body" => [
                 "query" => [
                     "bool" => [
-                        "must" => [
+                        "should" => [
                         ],
                     ],
                 ],
