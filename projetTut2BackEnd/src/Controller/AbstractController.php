@@ -8,6 +8,7 @@ use App\Entity\Requirement;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
 class AbstractController
 {
@@ -138,6 +139,36 @@ class AbstractController
         $results = $this->client->search($params);
 
         return new JsonResponse($results);
+    }
+
+    /**
+     * @Route("/tagWeightByGame/{appid}", name="tag_weight_by_game", methods={"GET"})
+     **/
+    public function tagWeightByGame(int $appid): JsonResponse
+    {
+        $params = [
+            'index' => 'steamspy_tag_data',
+            'body' => [
+                'query' => [
+                    'match' => [
+                        'data.appid' => $appid
+                    ]
+                ]
+            ]
+        ];
+
+        $results = $this->client->search($params);
+
+        arsort($results['hits']['hits'][0]['_source']['data']);
+        unset($results['hits']['hits'][0]['_source']['data']['appid']);
+
+        foreach ($results['hits']['hits'][0]['_source']['data'] as $key => $value) {
+           if($value === 0){
+               unset($results['hits']['hits'][0]['_source']['data'][$key]);
+           }
+        }
+
+        return new JsonResponse($results['hits']['hits'][0]['_source']['data']);
     }
 
     protected function parseRequestContent(string $requestContent)

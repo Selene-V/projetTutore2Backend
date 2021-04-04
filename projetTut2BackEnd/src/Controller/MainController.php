@@ -135,7 +135,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/gameByName/{name}/{page}", name="gameByName", methods={"GET"})
+     * @Route("/gameByName/{name}/{page}", name="game_by_name", methods={"GET"})
      * @param string $name
      * @param int $page
      * @return JsonResponse
@@ -196,7 +196,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/advancedSearch", name="advancedSearch", methods={"POST"})
+     * @Route("/advancedSearch", name="advanced_search", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
@@ -350,7 +350,7 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/fuzzySearch", name="fuzzySearch", methods={"POST"})
+     * @Route("/fuzzySearch", name="fuzzy_search", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
@@ -417,4 +417,70 @@ class MainController extends AbstractController
         return new JsonResponse($mergedResults);
     }
 
+    /**
+     * @Route("/relatedGames", name="related_games", methods={"POST"})
+     * @param Request $request
+     * @param array $tagsList
+     * @return JsonResponse
+     */
+    public function relatedGames(Request $request, array $tagsList): JsonResponse
+    {
+
+    }
+
+    /**
+     * @Route("/gamesByTags", name="games_by_tags", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function researchByTagWeight(Request $request): JsonResponse
+    {
+        $requestContent = $request->getContent();
+
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $params = [
+            "index" => "steam",
+            "body" => [
+                "query" => [
+                    "bool" => [
+                        "should" => [
+                        ],
+                    ],
+                ],
+            ]
+        ];
+
+        $shouldQueryParams = [];
+
+        $tags = json_decode($this->tagWeightByGame($searchParams['appid'])->getContent(), true);
+
+        foreach ($tags as $key => $weight) {
+            $key = str_replace("_"," ",$key);
+
+            array_push($shouldQueryParams, array("match" => array('data.steamspy_tags' => array("query" => $key, "boost" => $weight))));
+        }
+
+        $params['body']['query']['bool']['should'] = $shouldQueryParams;
+
+        $results = $this->client->search($params);
+
+        $games = ['games' => []];
+        foreach ($results['hits']['hits'] as $gameInfos){
+            $idgame = $gameInfos['_source']['data']['appid'];
+
+            $image = $this->createImage($idgame);
+
+            $description = $this->createDescription($idgame);
+
+            $game = new Game();
+            $game->hydrate($gameInfos['_source']['data']);
+            $game->setImage($image);
+            $game->setDescription($description);
+            $game->setId($gameInfos['_id']);
+            array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
+        }
+
+        return new JsonResponse($games);
+    }
 }
