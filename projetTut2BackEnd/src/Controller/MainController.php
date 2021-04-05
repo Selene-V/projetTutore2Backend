@@ -72,6 +72,40 @@ class MainController extends AbstractController
     }
 
     /**
+     * @Route("/tagCloud/{appid}", name="tag_cloud", methods={"GET"})
+     * @param int $appid
+     * @return JsonResponse
+     */
+    public function tagCloud(int $appid): JsonResponse
+    {
+        {
+            $params = [
+                'index' => 'steamspy_tag_data',
+                'body' => [
+                    'query' => [
+                        'match' => [
+                            'data.appid' => $appid
+                        ]
+                    ]
+                ]
+            ];
+
+            $results = $this->client->search($params);
+            $tagsWeight = $results['hits']['hits'][0]['_source']['data'];
+            unset($tagsWeight['appid']);
+
+            $tags = [];
+            foreach ($tagsWeight as $tag => $weight){
+                if ($weight!==0){
+                    $tags[] = $tag;
+                }
+            }
+
+            return new JsonResponse($tags);
+        }
+    }
+
+    /**
      * @Route("/games/{page}/{sorting}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
      * @param int $page
      * @param string|null $sorting
