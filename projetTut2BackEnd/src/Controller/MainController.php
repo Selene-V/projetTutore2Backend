@@ -10,7 +10,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 
 class MainController extends AbstractController
 {
@@ -72,6 +71,40 @@ class MainController extends AbstractController
     }
 
     /**
+     * @Route("/tagCloud/{appid}", name="tag_cloud", methods={"GET"})
+     * @param int $appid
+     * @return JsonResponse
+     */
+    public function tagCloud(int $appid): JsonResponse
+    {
+        {
+            $params = [
+                'index' => 'steamspy_tag_data',
+                'body' => [
+                    'query' => [
+                        'match' => [
+                            'data.appid' => $appid
+                        ]
+                    ]
+                ]
+            ];
+
+            $results = $this->client->search($params);
+            $tagsWeight = $results['hits']['hits'][0]['_source']['data'];
+            unset($tagsWeight['appid']);
+
+            $tags = [];
+            foreach ($tagsWeight as $tag => $weight){
+                if ($weight!==0){
+                    $tags[] = $tag;
+                }
+            }
+
+            return new JsonResponse($tags);
+        }
+    }
+
+    /**
      * @Route("/games/{page}/{sorting}", name="games", requirements={"page" = "\d+"}, methods={"GET"})
      * @param int $page
      * @param string|null $sorting
@@ -93,17 +126,7 @@ class MainController extends AbstractController
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
-
-            $temp = explode('-',$sorting);
-            $criteria = $temp[0];
-            $order = $temp[1];
-
-            if(in_array($criteria, $this->keywordArray)){
-                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            }
-            else{
-                $params['sort'] = array('data.' . $criteria . ':' . $order);
-            }
+            $params['sort'] = $this->setSorting($sorting, $this->keywordArray);
         }
 
         $result = $this->client->search($params);

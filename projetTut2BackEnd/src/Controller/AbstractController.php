@@ -14,14 +14,21 @@ class AbstractController
 {
     protected Client $client;
 
+    /**
+     * AbstractController constructor.
+     */
     public function __construct(){
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
     }
 
-    protected function createImage(int $idgame): Image
+    /**
+     * @param int $idGame
+     * @return Image
+     */
+    protected function createImage(int $idGame): Image
     {
         $image = new Image();
-        $imageData = json_decode($this->imagesByGame($idgame)->getContent(), true);
+        $imageData = json_decode($this->imagesByGame($idGame)->getContent(), true);
         if ($imageData['hits']['hits'] != null) {
             $imageData['hits']['hits'][0]['_source']['data']['screenshots'] = json_decode(str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['screenshots']), true);
             $imageData['hits']['hits'][0]['_source']['data']['movies'] = str_replace("'", "\"", $imageData['hits']['hits'][0]['_source']['data']['movies']);
@@ -35,10 +42,14 @@ class AbstractController
         return $image;
     }
 
-    protected function createDescription(int $idgame): Description
+    /**
+     * @param int $idGame
+     * @return Description
+     */
+    protected function createDescription(int $idGame): Description
     {
         $description = new Description();
-        $descriptionData = json_decode($this->descriptionsByGame($idgame)->getContent(), true);
+        $descriptionData = json_decode($this->descriptionsByGame($idGame)->getContent(), true);
         if ($descriptionData['hits']['hits'] != null) {
             $description->hydrate($descriptionData['hits']['hits'][0]['_source']['data']);
             $description->setId($descriptionData['hits']['hits'][0]['_id']);
@@ -47,10 +58,14 @@ class AbstractController
         return $description;
     }
 
-    protected function createRequirement(int $idgame): Requirement
+    /**
+     * @param int $idGame
+     * @return Requirement
+     */
+    protected function createRequirement(int $idGame): Requirement
     {
         $requirement = new Requirement();
-        $requirementData = json_decode($this->requirementsByGame($idgame)->getContent(), true);
+        $requirementData = json_decode($this->requirementsByGame($idGame)->getContent(), true);
         if ($requirementData['hits']['hits'] != null) {
             $requirement->hydrate($requirementData['hits']['hits'][0]['_source']['data']);
             $requirement->setId($requirementData['hits']['hits'][0]['_id']);
@@ -59,6 +74,11 @@ class AbstractController
         return $requirement;
     }
 
+    /**
+     * @param $sorting
+     * @param $keywordArray
+     * @return string[]
+     */
     protected function setSorting($sorting, $keywordArray): array
     {
         $temp = explode('-', $sorting);
@@ -74,6 +94,10 @@ class AbstractController
 
     }
 
+    /**
+     * @param $specialParam
+     * @return string
+     */
     protected function handleSpecialParams($specialParam): string
     {
         $chars = str_split($specialParam);
@@ -87,7 +111,11 @@ class AbstractController
         return implode("", $chars);
     }
 
-    private function imagesByGame(string $appid): JsonResponse
+    /**
+     * @param int $appid
+     * @return JsonResponse
+     */
+    private function imagesByGame(int $appid): JsonResponse
     {
         $params = [
             'index' => 'steam_media_data',
@@ -105,7 +133,11 @@ class AbstractController
         return new JsonResponse($result);
     }
 
-    private function descriptionsByGame(string $appid): JsonResponse
+    /**
+     * @param int $appid
+     * @return JsonResponse
+     */
+    private function descriptionsByGame(int $appid): JsonResponse
     {
         $params = [
             'index' => 'steam_description_data',
@@ -123,7 +155,11 @@ class AbstractController
         return new JsonResponse($results);
     }
 
-    private function requirementsByGame(string $appid): JsonResponse
+    /**
+     * @param int $appid
+     * @return JsonResponse
+     */
+    private function requirementsByGame(int $appid): JsonResponse
     {
         $params = [
             'index' => 'steam_requirements_data',
@@ -142,8 +178,9 @@ class AbstractController
     }
 
     /**
-     * @Route("/tagWeightByGame/{appid}", name="tag_weight_by_game", methods={"GET"})
-     **/
+     * @param int $appid
+     * @return JsonResponse
+     */
     public function tagWeightByGame(int $appid): JsonResponse
     {
         $params = [
@@ -171,7 +208,11 @@ class AbstractController
         return new JsonResponse($results['hits']['hits'][0]['_source']['data']);
     }
 
-    protected function parseRequestContent(string $requestContent)
+    /**
+     * @param string $requestContent
+     * @return array
+     */
+    protected function parseRequestContent(string $requestContent): array
     {
         $searchParams = [];
 
