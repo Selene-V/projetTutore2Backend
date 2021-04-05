@@ -362,7 +362,7 @@ class MainController extends AbstractController
 
         $params = [
             'index' => 'steam',
-            'size' => 150,
+            'size' => 100,
             'body' => [
                 'query' => [
                     'bool' =>[
@@ -413,6 +413,7 @@ class MainController extends AbstractController
         }
 
         $mergedResults = array_unique($mergedResults);
+        $mergedResults = array_slice($mergedResults, 0, 10);
 
         return new JsonResponse($mergedResults);
     }
@@ -420,20 +421,9 @@ class MainController extends AbstractController
     /**
      * @Route("/relatedGames", name="related_games", methods={"POST"})
      * @param Request $request
-     * @param array $tagsList
      * @return JsonResponse
      */
-    public function relatedGames(Request $request, array $tagsList): JsonResponse
-    {
-
-    }
-
-    /**
-     * @Route("/gamesByTags", name="games_by_tags", methods={"POST"})
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function researchByTagWeight(Request $request): JsonResponse
+    public function relatedGames(Request $request): JsonResponse
     {
         $requestContent = $request->getContent();
 
