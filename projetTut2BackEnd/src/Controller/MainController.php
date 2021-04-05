@@ -10,7 +10,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 
 class MainController extends AbstractController
 {
@@ -127,17 +126,7 @@ class MainController extends AbstractController
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
         if($sorting !== null){
-
-            $temp = explode('-',$sorting);
-            $criteria = $temp[0];
-            $order = $temp[1];
-
-            if(in_array($criteria, $this->keywordArray)){
-                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            }
-            else{
-                $params['sort'] = array('data.' . $criteria . ':' . $order);
-            }
+            $params['sort'] = $this->setSorting($sorting, $this->keywordArray);
         }
 
         $result = $this->client->search($params);
