@@ -16,8 +16,8 @@ class Register
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
         $email = htmlspecialchars($_POST['email']);
-        $password = sha1($_POST['password']);
-        $confPass = sha1($_POST['confPass']);
+        $password = $_POST['password'];
+        $confPass = $_POST['confPass'];
         if (!empty($_POST['email']) && !empty($_POST['password']) && !empty($_POST['confPass'])) {
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $reqemail = $bdd->prepare("SELECT * FROM user WHERE email = ?");
@@ -25,6 +25,7 @@ class Register
                 $emailexist = $reqemail->rowCount();
                 if ($emailexist == 0) {
                     if ($password == $confPass) {
+                        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
                         $insertmbr = $bdd->prepare("INSERT INTO user(email, password) VALUES(?, ?)");
                         $insertmbr->execute(array($email, $password));
                     } else {
