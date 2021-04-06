@@ -35,9 +35,7 @@ class UserController extends AbstractController
         $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
         if ($req->execute()) {
-            return new Response('true');
-        } else {
-            return new Response('false');
+            return new Response(true);
         }
     }
 
@@ -56,9 +54,7 @@ class UserController extends AbstractController
         $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
         if ($req->execute()) {
-            return new Response('true');
-        } else {
-            return new Response('false');
+            return new Response(true);
         }
     }
 
