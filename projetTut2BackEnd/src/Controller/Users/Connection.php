@@ -31,9 +31,9 @@ class Connection
                 session_start();
                 $_SESSION['id'] = $result['id'];
                 $_SESSION['email'] = $email;
-                return new Response('You are connected !');
+                return new Response(true);
             } else {
-                return new Response('Wrong login or password !');
+                return new Response(false);
             }
         }
     }
