@@ -17,17 +17,16 @@ class Connection
 
         $email = $_POST['email'];
 
-        $req = $bdd->prepare('SELECT id, password FROM user WHERE email = :email');
+        $req = $bdd->prepare("SELECT id, password FROM user WHERE email = ':email'");
         $req->execute(array(
             'email' => $email
         ));
         $result = $req->fetch();
 
-        $isPasswordCorrect = password_verify($_POST['password'], $result['password']);
-
         if (!$result) {
             return new Response('Wrong login or password !');
         } else {
+            $isPasswordCorrect = password_verify($_POST['password'], $result['password']);
             if ($isPasswordCorrect) {
                 session_start();
                 $_SESSION['id'] = $result['id'];
