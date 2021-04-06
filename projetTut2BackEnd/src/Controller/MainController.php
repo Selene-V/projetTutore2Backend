@@ -52,13 +52,15 @@ class MainController extends AbstractController
 
         $result = $this->client->get($params);
 
-        $idgame = $result['_source']['data']['appid'];
+        $idGame = $result['_source']['data']['appid'];
 
-        $image = $this->createImage($idgame);
+        $image = $this->createImage($idGame);
 
-        $description = $this->createDescription($idgame);
+        $description = $this->createDescription($idGame);
 
-        $requirement = $this->createRequirement($idgame);
+        $requirement = $this->createRequirement($idGame);
+
+        $tagCloud = json_decode($this->tagCloud($idGame)->getContent(), true);
 
         $game = new Game();
         $game->hydrate($result['_source']['data']);
@@ -66,42 +68,9 @@ class MainController extends AbstractController
         $game->setDescription($description);
         $game->setRequirement($requirement);
         $game->setId($result['_id']);
+        $game->setTagCloud($tagCloud);
 
         return new JsonResponse(json_decode($this->serializer->serialize($game, 'json')));
-    }
-
-    /**
-     * @Route("/tagCloud/{appid}", name="tag_cloud", methods={"GET"})
-     * @param int $appid
-     * @return JsonResponse
-     */
-    public function tagCloud(int $appid): JsonResponse
-    {
-        {
-            $params = [
-                'index' => 'steamspy_tag_data',
-                'body' => [
-                    'query' => [
-                        'match' => [
-                            'data.appid' => $appid
-                        ]
-                    ]
-                ]
-            ];
-
-            $results = $this->client->search($params);
-            $tagsWeight = $results['hits']['hits'][0]['_source']['data'];
-            unset($tagsWeight['appid']);
-
-            $tags = [];
-            foreach ($tagsWeight as $tag => $weight){
-                if ($weight!==0){
-                    $tags[] = $tag;
-                }
-            }
-
-            return new JsonResponse($tags);
-        }
     }
 
     /**
@@ -133,11 +102,11 @@ class MainController extends AbstractController
 
         $games = ['games' => []];
         foreach ($result['hits']['hits'] as $gameInfos){
-            $idgame = $gameInfos['_source']['data']['appid'];
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+            $image = $this->createImage($idGame);
 
-            $description = $this->createDescription($idgame);
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -187,11 +156,11 @@ class MainController extends AbstractController
 
         $games = ['games' => []];
         foreach ($result['hits']['hits'] as $gameInfos){
-            $idgame = $gameInfos['_source']['data']['appid'];
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+            $image = $this->createImage($idGame);
 
-            $description = $this->createDescription($idgame);
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -347,11 +316,11 @@ class MainController extends AbstractController
 
         $games = ['games' => []];
         foreach ($results['hits']['hits'] as $gameInfos){
-            $idgame = $gameInfos['_source']['data']['appid'];
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+            $image = $this->createImage($idGame);
 
-            $description = $this->createDescription($idgame);
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -480,11 +449,11 @@ class MainController extends AbstractController
 
         $games = ['games' => []];
         foreach ($results['hits']['hits'] as $gameInfos){
-            $idgame = $gameInfos['_source']['data']['appid'];
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+            $image = $this->createImage($idGame);
 
-            $description = $this->createDescription($idgame);
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);

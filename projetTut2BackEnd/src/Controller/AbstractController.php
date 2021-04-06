@@ -8,7 +8,6 @@ use App\Entity\Requirement;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
 
 class AbstractController
 {
@@ -175,6 +174,39 @@ class AbstractController
         $results = $this->client->search($params);
 
         return new JsonResponse($results);
+    }
+
+    /**
+     * @param int $appid
+     * @return JsonResponse
+     */
+    public function tagCloud(int $appid): JsonResponse
+    {
+        {
+            $params = [
+                'index' => 'steamspy_tag_data',
+                'body' => [
+                    'query' => [
+                        'match' => [
+                            'data.appid' => $appid
+                        ]
+                    ]
+                ]
+            ];
+
+            $results = $this->client->search($params);
+            $tagsWeight = $results['hits']['hits'][0]['_source']['data'];
+            unset($tagsWeight['appid']);
+
+            $tags = [];
+            foreach ($tagsWeight as $tag => $weight){
+                if ($weight!==0){
+                    $tags[] = $tag;
+                }
+            }
+
+            return new JsonResponse($tags);
+        }
     }
 
     /**

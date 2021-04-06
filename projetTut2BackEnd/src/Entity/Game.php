@@ -52,6 +52,8 @@ class Game
 
     private ?Requirement $requirement = null;
 
+    private ?array $tagCloud = null;
+
     /**
      * @return string|null
      */
@@ -466,6 +468,25 @@ class Game
     public function setRequirement(?Requirement $requirement): self
     {
         $this->requirement = $requirement;
+
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getTagCloud(): ?array
+    {
+        return $this->tagCloud;
+    }
+
+    /**
+     * @param array|null $tagCloud
+     * @return Game
+     */
+    public function setTagCloud(?array $tagCloud): self
+    {
+        $this->tagCloud = $tagCloud;
 
         return $this;
     }
