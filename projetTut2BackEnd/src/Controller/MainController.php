@@ -5,18 +5,11 @@ namespace App\Controller;
 use App\Entity\Game;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\iterator;
 
 class MainController extends AbstractController
 {
-    private array $encoders;
-    private array $normalizers;
-    private Serializer $serializer;
+
     private array $keywordArray;
     private array $mustArray;
     private array $specialHandleArray;
@@ -27,10 +20,6 @@ class MainController extends AbstractController
     public function __construct()
     {
         parent::__construct();
-        $this->encoders = [new XmlEncoder(), new JsonEncoder()];
-        $this->normalizers = [new ObjectNormalizer()];
-
-        $this->serializer = new Serializer($this->normalizers, $this->encoders);
 
         $this->keywordArray = ["name", "categories", "developer", "genres", "owners", "platforms", "publisher", "steamspy_tags"];
 
@@ -87,21 +76,20 @@ class MainController extends AbstractController
         $params = [
             'index' => 'steam',
             'size' => $gamesByPage,
-            'from' => ($page-1)*$gamesByPage
+            'from' => ($page - 1) * $gamesByPage
 
         ];
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
-        if($sorting !== null){
+        if ($sorting !== null) {
 
-            $temp = explode('-',$sorting);
+            $temp = explode('-', $sorting);
             $criteria = $temp[0];
             $order = $temp[1];
 
-            if(in_array($criteria, $this->keywordArray)){
+            if (in_array($criteria, $this->keywordArray)) {
                 $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            }
-            else{
+            } else {
                 $params['sort'] = array('data.' . $criteria . ':' . $order);
             }
         }
@@ -109,7 +97,7 @@ class MainController extends AbstractController
         $result = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($result['hits']['hits'] as $gameInfos){
+        foreach ($result['hits']['hits'] as $gameInfos) {
             $idgame = $gameInfos['_source']['data']['appid'];
 
             $image = $this->createImage($idgame);
@@ -130,7 +118,7 @@ class MainController extends AbstractController
 
         $totalGames = $this->client->count($params2);
 
-        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
+        $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
         return new JsonResponse($games);
     }
 
@@ -150,7 +138,7 @@ class MainController extends AbstractController
         $params = [
             'index' => 'steam',
             'size' => $gamesByPage,
-            'from' => ($page-1)*$gamesByPage,
+            'from' => ($page - 1) * $gamesByPage,
             'body' => [
                 'query' => [
                     'match' => [
@@ -163,7 +151,7 @@ class MainController extends AbstractController
         $result = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($result['hits']['hits'] as $gameInfos){
+        foreach ($result['hits']['hits'] as $gameInfos) {
             $idgame = $gameInfos['_source']['data']['appid'];
 
             $image = $this->createImage($idgame);
@@ -190,7 +178,7 @@ class MainController extends AbstractController
 
         $totalGames = $this->client->count($params2);
 
-        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
+        $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
 
         return new JsonResponse($games);
     }
@@ -217,12 +205,11 @@ class MainController extends AbstractController
         $params = [
             "index" => "steam",
             'size' => $gamesByPage,
-            'from' => ($page-1)*$gamesByPage,
+            'from' => ($page - 1) * $gamesByPage,
             "body" => [
                 "query" => [
                     "bool" => [
-                        "should" => [
-                        ],
+                        "should" => [],
                     ],
                 ],
             ]
@@ -231,14 +218,14 @@ class MainController extends AbstractController
         $shouldQueryParams = [];
         $mustQueryParams = [];
 
-        if(isset($searchParams['sorting'])){
+        if (isset($searchParams['sorting'])) {
             $params['sort'] = $this->setSorting($searchParams['sorting'], $this->keywordArray);
 
             unset($searchParams['sorting']);
         }
 
         foreach ($searchParams as $criteria => $value) {
-            if(in_array($criteria ,$this->mustArray)){ //bloc critères ET logique, must dans la requête
+            if (in_array($criteria, $this->mustArray)) { //bloc critères ET logique, must dans la requête
 
                 $specialParams = explode("+", $value);
 
@@ -246,47 +233,40 @@ class MainController extends AbstractController
 
                     $handledParam = $this->handleSpecialParams($specialParam);
 
-                    array_push($mustQueryParams, array("terms" => array('data.'.$criteria.'.keyword' => (array)$handledParam)));
+                    array_push($mustQueryParams, array("terms" => array('data.' . $criteria . '.keyword' => (array)$handledParam)));
                 }
-            }
-            else{ //block critères OU logique, should dans la requête
-                if($criteria === "release_date" && strlen($value) === 4){
-                    $range = array("data.release_date" => array("gte" => $value."||/y", "lte" => $value."||/y" ));
-                }
-                else if ($criteria === "name") {
-                    array_push($shouldQueryParams, array("match" => array('data.'.$criteria => $value)));
-                }
-                else if($criteria === "release_date_begin" || $criteria ==="release_date_end"){
+            } else { //block critères OU logique, should dans la requête
+                if ($criteria === "release_date" && strlen($value) === 4) {
+                    $range = array("data.release_date" => array("gte" => $value . "||/y", "lte" => $value . "||/y"));
+                } else if ($criteria === "name") {
+                    array_push($shouldQueryParams, array("match" => array('data.' . $criteria => $value)));
+                } else if ($criteria === "release_date_begin" || $criteria === "release_date_end") {
                     switch ($criteria) {
                         case 'release_date_begin':
                             $releaseDateBegin = $value;
                             break;
                         case 'release_date_end':
-                            if(!isset($range)){
+                            if (!isset($range)) {
                                 $range = array("data.release_date" => array("gte" => $releaseDateBegin, "lte" => $value));
-                            }
-                            else{
+                            } else {
                                 $range['data.release_date'] = array("gte" => $releaseDateBegin, "lte" => $value);
                             }
                             break;
                     }
-                }
-                else if($criteria === "review_rate_low" || $criteria === "review_rate_high"){
+                } else if ($criteria === "review_rate_low" || $criteria === "review_rate_high") {
                     switch ($criteria) {
                         case 'review_rate_low':
                             $reviewRateLow = $value;
                             break;
                         case 'review_rate_high':
-                            if(!isset($range)){
+                            if (!isset($range)) {
                                 $range = array("data.positive_review_percentage" => array("gte" => $reviewRateLow, "lte" => $value));
-                            }
-                            else{
+                            } else {
                                 $range['data.positive_review_percentage'] = array("gte" => $reviewRateLow, "lte" => $value);
                             }
                             break;
                     }
-                }
-                else if (in_array($criteria,$this->specialHandleArray)) {
+                } else if (in_array($criteria, $this->specialHandleArray)) {
 
                     $specialParams = explode("+", $value);
 
@@ -294,20 +274,17 @@ class MainController extends AbstractController
 
                         $handledParam = $this->handleSpecialParams($specialParam);
 
-                        if(in_array($criteria ,$this->keywordArray)){
-                            array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$handledParam)));
-                        }
-                        else{
-                            array_push($shouldQueryParams, array("terms" => array('data.'.$criteria =>  (array)$handledParam)));
+                        if (in_array($criteria, $this->keywordArray)) {
+                            array_push($shouldQueryParams, array("terms" => array('data.' . $criteria . '.keyword' =>  (array)$handledParam)));
+                        } else {
+                            array_push($shouldQueryParams, array("terms" => array('data.' . $criteria =>  (array)$handledParam)));
                         }
                     }
-                }
-                else{
-                    if(in_array($criteria ,$this->keywordArray)){
-                        array_push($shouldQueryParams, array("terms" => array('data.'.$criteria.'.keyword' =>  (array)$value)));
-                    }
-                    else{
-                        array_push($shouldQueryParams, array("terms" => array('data.'.$criteria =>  (array)$value)));
+                } else {
+                    if (in_array($criteria, $this->keywordArray)) {
+                        array_push($shouldQueryParams, array("terms" => array('data.' . $criteria . '.keyword' =>  (array)$value)));
+                    } else {
+                        array_push($shouldQueryParams, array("terms" => array('data.' . $criteria =>  (array)$value)));
                     }
                 }
             }
@@ -316,14 +293,14 @@ class MainController extends AbstractController
         $params['body']['query']['bool']['should'] = $shouldQueryParams;
         $params['body']['query']['bool']['must'] = $mustQueryParams;
 
-        if(isset($range)){
+        if (isset($range)) {
             array_push($params['body']['query']['bool']['should'], array("range" => $range));
         }
 
         $results = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($results['hits']['hits'] as $gameInfos){
+        foreach ($results['hits']['hits'] as $gameInfos) {
             $idgame = $gameInfos['_source']['data']['appid'];
 
             $image = $this->createImage($idgame);
@@ -344,7 +321,7 @@ class MainController extends AbstractController
 
         $totalGames = $this->client->count($params2);
 
-        $games['nbPages'] = ceil($totalGames['count']/$gamesByPage);
+        $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
 
         return new JsonResponse($games);
     }
@@ -365,9 +342,8 @@ class MainController extends AbstractController
             'size' => 100,
             'body' => [
                 'query' => [
-                    'bool' =>[
-                        'should' => [
-                        ]
+                    'bool' => [
+                        'should' => []
                     ]
                 ]
             ]
@@ -379,8 +355,8 @@ class MainController extends AbstractController
 
         foreach ($searchParams as $criteria => $value) {
             $savedCriteria = $criteria;
-            $fuzzyQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
-            $wildcardQueryParams['data.'.$criteria.'.keyword'] = array("value" => $value . "*");
+            $fuzzyQueryParams['data.' . $criteria . '.keyword'] = array("value" => $value, "fuzziness" => "2", "boost" => 0.1);
+            $wildcardQueryParams['data.' . $criteria . '.keyword'] = array("value" => $value . "*");
         }
 
         $params['body']['query']['bool']['should'][]['fuzzy'] = $fuzzyQueryParams;
@@ -396,19 +372,19 @@ class MainController extends AbstractController
                 $game->hydrate($value2);
             }
 
-            $savedCriteriaTab = explode('_', ''.$savedCriteria);
+            $savedCriteriaTab = explode('_', '' . $savedCriteria);
             $savedCriteriaOk = '';
             foreach ($savedCriteriaTab as $key3 => $value3) {
                 $savedCriteriaTab[$key3] = ucfirst($value3);
                 $savedCriteriaOk = $savedCriteriaOk . $savedCriteriaTab[$key3];
             }
 
-            array_push($trimmedResult, call_user_func(array($game, "get".$savedCriteriaOk)));
+            array_push($trimmedResult, call_user_func(array($game, "get" . $savedCriteriaOk)));
         }
 
         $mergedResults = [];
 
-        foreach ($trimmedResult as $key => $value){
+        foreach ($trimmedResult as $key => $value) {
             $mergedResults = array_merge((array)$mergedResults, (array)$value);
         }
 
@@ -434,8 +410,7 @@ class MainController extends AbstractController
             "body" => [
                 "query" => [
                     "bool" => [
-                        "should" => [
-                        ],
+                        "should" => [],
                     ],
                 ],
             ]
@@ -446,7 +421,7 @@ class MainController extends AbstractController
         $tags = json_decode($this->tagWeightByGame($searchParams['appid'])->getContent(), true);
 
         foreach ($tags as $key => $weight) {
-            $key = str_replace("_"," ",$key);
+            $key = str_replace("_", " ", $key);
 
             array_push($shouldQueryParams, array("match" => array('data.steamspy_tags' => array("query" => $key, "boost" => $weight))));
         }
@@ -456,7 +431,7 @@ class MainController extends AbstractController
         $results = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($results['hits']['hits'] as $gameInfos){
+        foreach ($results['hits']['hits'] as $gameInfos) {
             $idgame = $gameInfos['_source']['data']['appid'];
 
             $image = $this->createImage($idgame);
