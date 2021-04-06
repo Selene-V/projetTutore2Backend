@@ -8,16 +8,27 @@ use App\Entity\Requirement;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class AbstractController
 {
     protected Client $client;
+    private array $encoders;
+    private array $normalizers;
+    protected Serializer $serializer;
 
     /**
      * AbstractController constructor.
      */
     public function __construct(){
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
+        $this->encoders = [new XmlEncoder(), new JsonEncoder()];
+        $this->normalizers = [new ObjectNormalizer()];
+        $this->serializer = new Serializer($this->normalizers, $this->encoders);
     }
 
     /**
@@ -84,13 +95,11 @@ class AbstractController
         $criteria = $temp[0];
         $order = $temp[1];
 
-        if(in_array($criteria, $keywordArray)){
-           return array('data.' . $criteria . '.keyword:' . $order);
-        }
-        else{
+        if (in_array($criteria, $keywordArray)) {
+            return array('data.' . $criteria . '.keyword:' . $order);
+        } else {
             return array('data.' . $criteria . ':' . $order);
         }
-
     }
 
     /**
@@ -101,12 +110,11 @@ class AbstractController
     {
         $chars = str_split($specialParam);
 
-            foreach($chars as $key => $char)
-            {
-                if($char === "~" && $key !== 0){
-                    $chars[$key] = " ";
-                }
+        foreach ($chars as $key => $char) {
+            if ($char === "~" && $key !== 0) {
+                $chars[$key] = " ";
             }
+        }
         return implode("", $chars);
     }
 
@@ -232,9 +240,9 @@ class AbstractController
         unset($results['hits']['hits'][0]['_source']['data']['appid']);
 
         foreach ($results['hits']['hits'][0]['_source']['data'] as $key => $value) {
-           if($value === 0){
-               unset($results['hits']['hits'][0]['_source']['data'][$key]);
-           }
+            if ($value === 0) {
+                unset($results['hits']['hits'][0]['_source']['data'][$key]);
+            }
         }
 
         return new JsonResponse($results['hits']['hits'][0]['_source']['data']);
@@ -251,7 +259,7 @@ class AbstractController
         foreach (explode('&', $requestContent) as $chunk) {
             $param = explode("=", $chunk);
 
-            $searchParams[$param[0]] = $param[1] ;
+            $searchParams[$param[0]] = $param[1];
         }
 
         return $searchParams;
