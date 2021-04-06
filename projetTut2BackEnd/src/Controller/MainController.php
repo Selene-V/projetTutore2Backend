@@ -42,13 +42,15 @@ class MainController extends AbstractController
 
         $result = $this->client->get($params);
 
-        $idgame = $result['_source']['data']['appid'];
+        $idGame = $result['_source']['data']['appid'];
 
-        $image = $this->createImage($idgame);
+        $image = $this->createImage($idGame);
 
-        $description = $this->createDescription($idgame);
+        $description = $this->createDescription($idGame);
 
-        $requirement = $this->createRequirement($idgame);
+        $requirement = $this->createRequirement($idGame);
+
+        $tagCloud = json_decode($this->tagCloud($idGame)->getContent(), true);
 
         $game = new Game();
         $game->hydrate($result['_source']['data']);
@@ -56,6 +58,7 @@ class MainController extends AbstractController
         $game->setDescription($description);
         $game->setRequirement($requirement);
         $game->setId($result['_id']);
+        $game->setTagCloud($tagCloud);
 
         return new JsonResponse(json_decode($this->serializer->serialize($game, 'json')));
     }
@@ -81,28 +84,20 @@ class MainController extends AbstractController
         ];
 
         //sorting to be defined this way in the URL : /games/{page}/criteria-order (for example : name-desc)
-        if ($sorting !== null) {
-
-            $temp = explode('-', $sorting);
-            $criteria = $temp[0];
-            $order = $temp[1];
-
-            if (in_array($criteria, $this->keywordArray)) {
-                $params['sort'] = array('data.' . $criteria . '.keyword:' . $order);
-            } else {
-                $params['sort'] = array('data.' . $criteria . ':' . $order);
-            }
+        if($sorting !== null){
+            $params['sort'] = $this->setSorting($sorting, $this->keywordArray);
         }
 
         $result = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($result['hits']['hits'] as $gameInfos) {
-            $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+        foreach ($result['hits']['hits'] as $gameInfos){
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $description = $this->createDescription($idgame);
+            $image = $this->createImage($idGame);
+
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -151,12 +146,13 @@ class MainController extends AbstractController
         $result = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($result['hits']['hits'] as $gameInfos) {
-            $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+        foreach ($result['hits']['hits'] as $gameInfos){
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $description = $this->createDescription($idgame);
+            $image = $this->createImage($idGame);
+
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -300,12 +296,13 @@ class MainController extends AbstractController
         $results = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($results['hits']['hits'] as $gameInfos) {
-            $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+        foreach ($results['hits']['hits'] as $gameInfos){
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $description = $this->createDescription($idgame);
+            $image = $this->createImage($idGame);
+
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
@@ -431,12 +428,13 @@ class MainController extends AbstractController
         $results = $this->client->search($params);
 
         $games = ['games' => []];
-        foreach ($results['hits']['hits'] as $gameInfos) {
-            $idgame = $gameInfos['_source']['data']['appid'];
 
-            $image = $this->createImage($idgame);
+        foreach ($results['hits']['hits'] as $gameInfos){
+            $idGame = $gameInfos['_source']['data']['appid'];
 
-            $description = $this->createDescription($idgame);
+            $image = $this->createImage($idGame);
+
+            $description = $this->createDescription($idGame);
 
             $game = new Game();
             $game->hydrate($gameInfos['_source']['data']);
