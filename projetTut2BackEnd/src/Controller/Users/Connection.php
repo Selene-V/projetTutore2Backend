@@ -10,8 +10,9 @@ class Connection
 {
     /**
      * @Route("/connection", name="connection", methods={"POST"})
+     * @return Response
      */
-    public function connection()
+    public function connection(): Response
     {
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 

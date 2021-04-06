@@ -14,6 +14,9 @@ class UserController extends AbstractController
 {
     private PDO $bdd;
 
+    /**
+     * UserController constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -22,8 +25,10 @@ class UserController extends AbstractController
 
     /**
      * @Route("/addGameToLibrary", name="addGameToLibrary", methods={"POST"})
+     * @param Request $request
+     * @return Response
      */
-    public function addGameToLibrary(Request $request)
+    public function addGameToLibrary(Request $request): Response
     {
         $requestContent = $request->getContent();
 
@@ -41,8 +46,10 @@ class UserController extends AbstractController
 
     /**
      * @Route("/removeGameFromLibrary", name="removeGameFromLibrary", methods={"POST"})
+     * @param Request $request
+     * @return Response
      */
-    public function removeGameFromLibrary(Request $request)
+    public function removeGameFromLibrary(Request $request): Response
     {
         $requestContent = $request->getContent();
 
@@ -60,9 +67,10 @@ class UserController extends AbstractController
 
     /**
      * @Route("/displayLibrary", name="display_library", requirements={"page" = "\d+"}, methods={"POST"})
+     * @param Request $request
      * @return JsonResponse
      */
-    public function displayLibrary(Request $request)
+    public function displayLibrary(Request $request): JsonResponse
     {
 
         $requestContent = $request->getContent();

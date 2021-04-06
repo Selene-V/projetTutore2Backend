@@ -8,10 +8,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Disconnection
 {
+
     /**
      * @Route("/disconnection", name="disconnection", methods={"POST"})
+     * @return Response
      */
-    public function disconnection()
+    public function disconnection(): Response
     {
         session_destroy();
         return new Response('You have been disconnected !');

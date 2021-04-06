@@ -10,8 +10,9 @@ class Register
 {
     /**
      * @Route("/register", name="register", methods={"POST"})
+     * @return Response
      */
-    public function register()
+    public function register(): Response
     {
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
