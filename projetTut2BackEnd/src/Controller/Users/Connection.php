@@ -34,7 +34,7 @@ class Connection extends AbstractController
         $result = $req->fetch();
 
         if (!$result) {
-            return new Response('Wrong login or password !');
+            return new JsonResponse('Wrong login or password !');
         } else {
             $isPasswordCorrect = password_verify($password, $result['password']);
             if ($isPasswordCorrect) {
@@ -48,7 +48,7 @@ class Connection extends AbstractController
 
                 return new JsonResponse($token);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse('Wrong login or password !');
             }
         }
     }
