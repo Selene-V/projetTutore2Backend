@@ -2,28 +2,29 @@
 
 namespace App\Controller\Users;
 
+use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
 use App\Manager\TokenManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
-class Connection
+class Connection extends AbstractController
 {
     /**
      * @Route("/connection", name="connection", methods={"POST"})
      */
-    public function connection()
+    public function connection(Request $request)
     {
         $tokenManager = new TokenManager();
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
-        if (isset($_POST['email'])) {
-            $email = $_POST['email'];
-        } else {
-            return new JsonResponse($_POST);
-        }
+        $requestContent = $request->getContent();
 
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $email = $searchParams['email'];
 
         $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");
         $req->execute(array(
