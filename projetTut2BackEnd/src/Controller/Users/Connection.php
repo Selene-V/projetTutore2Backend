@@ -5,6 +5,7 @@ namespace App\Controller\Users;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
+use App\Manager\TokenManager;
 
 class Connection
 {
@@ -13,11 +14,12 @@ class Connection
      */
     public function connection()
     {
+        $tokenManager = new TokenManager();
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
         $email = $_POST['email'];
 
-        $req = $bdd->prepare("SELECT id, password FROM user WHERE email = ':email'");
+        $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");
         $req->execute(array(
             'email' => $email
         ));
@@ -28,10 +30,15 @@ class Connection
         } else {
             $isPasswordCorrect = password_verify($_POST['password'], $result['password']);
             if ($isPasswordCorrect) {
-                session_start();
-                $_SESSION['id'] = $result['id'];
-                $_SESSION['email'] = $email;
-                return new Response(true);
+                $token = $tokenManager->encode([
+                    "iss" => "http://projettutbackend2",
+                    "aud" => "http://projettutbackend2",
+                    "iat" => time(),
+                    "exp" => time() + 86400,
+                    'email' => $email
+                ]);
+
+                return new Response($token);
             } else {
                 return new Response(false);
             }

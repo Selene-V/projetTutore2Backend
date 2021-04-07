@@ -4,6 +4,7 @@ namespace App\Controller\Users;
 
 use App\Controller\AbstractController;
 use App\Entity\Game;
+use App\Manager\TokenManager;
 use PDO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,12 @@ class UserController extends AbstractController
         $requestContent = $request->getContent();
 
         $searchParams = $this->parseRequestContent($requestContent);
+
+        $authorizationHeader = $request->headers->get('Authorization');
+        $authorizationHeaderArray = explode(' ', $authorizationHeader);
+        $token = $authorizationHeaderArray[0] ?? null;
+        $jwtToken = (new TokenManager())->decode($token);
+        dd($jwtToken);
 
         $req = $this->bdd->prepare("INSERT INTO users_games VALUES (:user, :game)");
 
