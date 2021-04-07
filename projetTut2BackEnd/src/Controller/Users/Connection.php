@@ -18,7 +18,12 @@ class Connection
         $tokenManager = new TokenManager();
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
-        $email = $_POST['email'];
+        if (isset($_POST['email'])) {
+            $email = $_POST['email'];
+        } else {
+            return new JsonResponse($_POST);
+        }
+
 
         $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");
         $req->execute(array(
