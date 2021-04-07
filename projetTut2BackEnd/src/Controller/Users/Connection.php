@@ -6,6 +6,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
 use App\Manager\TokenManager;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class Connection
 {
@@ -35,12 +36,12 @@ class Connection
                     "aud" => "http://projettutbackend2",
                     "iat" => time(),
                     "exp" => time() + 86400,
-                    'email' => $email
+                    "id" => $result['id']
                 ]);
 
-                return new Response($token);
+                return new JsonResponse($token);
             } else {
-                return new Response(false);
+                return new JsonResponse(false);
             }
         }
     }

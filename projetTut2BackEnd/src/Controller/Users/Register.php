@@ -42,7 +42,7 @@ class Register
         }
 
         if (isset($error)) {
-            return new Response(false);
+            return new Response($error);
         } else {
             return new Response(true);
         }

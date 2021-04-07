@@ -30,19 +30,19 @@ class UserController extends AbstractController
 
         $searchParams = $this->parseRequestContent($requestContent);
 
-        $authorizationHeader = $request->headers->get('Authorization');
-        $authorizationHeaderArray = explode(' ', $authorizationHeader);
-        $token = $authorizationHeaderArray[0] ?? null;
-        $jwtToken = (new TokenManager())->decode($token);
-        dd($jwtToken);
+        $data = $this->getToken($request);
 
-        $req = $this->bdd->prepare("INSERT INTO users_games VALUES (:user, :game)");
+        if ($data['exp'] > time() && $data['id'] === $searchParams['user']) {
+            $req = $this->bdd->prepare("INSERT INTO users_games VALUES (:user, :game)");
 
-        $req->bindParam(':user', $searchParams['user'], PDO::PARAM_INT);
-        $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
+            $req->bindParam(':user', $searchParams['user'], PDO::PARAM_INT);
+            $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
-        if ($req->execute()) {
-            return new Response(true);
+            if ($req->execute()) {
+                return new Response(true);
+            }
+        } else {
+            throw new \LogicException('Token Expiré ou invalide !');
         }
     }
 
@@ -133,5 +133,15 @@ class UserController extends AbstractController
 
         $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
         return new JsonResponse($games);
+    }
+
+    public function getToken(Request $request)
+    {
+        $authorizationHeader = $request->headers->get('Authorization');
+        $authorizationHeaderArray = explode(' ', $authorizationHeader);
+        $token = $authorizationHeaderArray[0] ?? null;
+        $data = (new TokenManager())->decode($token);
+
+        return $data;
     }
 }

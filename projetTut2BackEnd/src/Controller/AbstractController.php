@@ -24,7 +24,8 @@ class AbstractController
     /**
      * AbstractController constructor.
      */
-    public function __construct(){
+    public function __construct()
+    {
         $this->client = ClientBuilder::create()->setHosts(['localhost:9200'])->build();
         $this->encoders = [new XmlEncoder(), new JsonEncoder()];
         $this->normalizers = [new ObjectNormalizer()];
@@ -189,8 +190,7 @@ class AbstractController
      * @return JsonResponse
      */
     public function tagCloud(int $appid): JsonResponse
-    {
-        {
+    { {
             $params = [
                 'index' => 'steamspy_tag_data',
                 'body' => [
@@ -207,8 +207,8 @@ class AbstractController
             unset($tagsWeight['appid']);
 
             $tags = [];
-            foreach ($tagsWeight as $tag => $weight){
-                if ($weight!==0){
+            foreach ($tagsWeight as $tag => $weight) {
+                if ($weight !== 0) {
                     $tags[] = $tag;
                 }
             }
