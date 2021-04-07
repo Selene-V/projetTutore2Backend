@@ -25,6 +25,7 @@ class Connection extends AbstractController
         $searchParams = $this->parseRequestContent($requestContent);
 
         $email = $searchParams['email'];
+        $password = $searchParams['password'];
 
         $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");
         $req->execute(array(
@@ -35,7 +36,7 @@ class Connection extends AbstractController
         if (!$result) {
             return new Response('Wrong login or password !');
         } else {
-            $isPasswordCorrect = password_verify($_POST['password'], $result['password']);
+            $isPasswordCorrect = password_verify($password, $result['password']);
             if ($isPasswordCorrect) {
                 $token = $tokenManager->encode([
                     "iss" => "http://projettutbackend2",
