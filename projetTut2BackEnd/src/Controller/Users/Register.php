@@ -5,6 +5,7 @@ namespace App\Controller\Users;
 use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -49,9 +50,9 @@ class Register extends AbstractController
         }
 
         if (isset($error)) {
-            return new Response($error);
+            return new JsonResponse($error);
         } else {
-            return new Response(true);
+            return new JsonResponse(true);
         }
     }
 }
