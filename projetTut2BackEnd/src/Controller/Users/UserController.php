@@ -115,18 +115,33 @@ class UserController extends AbstractController
             if ($page < 1) {
                 $page = 1;
             }
-            $params = [
-                'index' => 'steam',
-                'size' => $gamesByPage,
-                'from' => ($page - 1) * $gamesByPage,
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'should' => [],
+
+            if ($page !== null) {
+                $params = [
+                    'index' => 'steam',
+                    'size' => $gamesByPage,
+                    'from' => ($page - 1) * $gamesByPage,
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'should' => [],
+                            ],
                         ],
                     ],
-                ],
-            ];
+                ];
+            } else {
+                $params = [
+                    'index' => 'steam',
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'should' => [],
+                            ],
+                        ],
+                    ],
+                ];
+            }
+
 
             $queryParams = [];
 
