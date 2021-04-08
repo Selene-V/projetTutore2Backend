@@ -99,7 +99,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/displayLibrary", name="display_library", methods={"POST"})
+     * @Route("/displayLibrary", name="display_library", requirements={"page" = "\d+"}, methods={"POST"})
      * @param Request $request
      * @return Response
      */
@@ -124,34 +124,21 @@ class UserController extends AbstractController
             $gamesByPage = 8;
             $page = $searchParams['page'];
 
-            if ($page !== "null") {
-                if ($page < 1) {
-                    $page = 1;
-                }
-                $params = [
-                    'index' => 'steam',
-                    'size' => $gamesByPage,
-                    'from' => ($page - 1) * $gamesByPage,
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'should' => [],
-                            ],
-                        ],
-                    ],
-                ];
-            } else {
-                $params = [
-                    'index' => 'steam',
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'should' => [],
-                            ],
-                        ],
-                    ],
-                ];
+            if ($page < 1) {
+                $page = 1;
             }
+            $params = [
+                'index' => 'steam',
+                'size' => $gamesByPage,
+                'from' => ($page - 1) * $gamesByPage,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'should' => [],
+                        ],
+                    ],
+                ],
+            ];
 
 
             $queryParams = [];
@@ -180,21 +167,50 @@ class UserController extends AbstractController
                 array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
             }
 
-            if ($page !== "null"){
-                unset($params['size']);
-                unset($params['page']);
-                unset($params['from']);
+            unset($params['size']);
+            unset($params['page']);
+            unset($params['from']);
 
-                $totalGames = $this->client->count($params);
+            $totalGames = $this->client->count($params);
 
-                $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
-            }
+            $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
             return new JsonResponse($games);
         }
         return new Response(false);
     }
 
     /**
+     * @Route("/libraryContains", name="library_contains", methods={"POST"})
+     * @param Request $request
+     * @return Response
+     */
+    public function libraryContains(Request $request): Response
+    {
+
+        $requestContent = $request->getContent();
+
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $data = $this->getToken($request);
+
+        if ($this->checkToken($data)) {
+            $req = $this->bdd->prepare('SELECT game FROM users_games WHERE user = :user AND game = :game');
+
+            $req->execute(array(
+                'user' => $data['id'],
+                'game' => $searchParams['appid']
+            ));
+
+            $resultSQL = $req->fetch();
+        }
+        if (!$resultSQL){
+            return new Response($resultSQL);
+        }else {
+            return new Response(true);
+        }
+    }
+
+            /**
      * @param Request $request
      * @return array
      */
