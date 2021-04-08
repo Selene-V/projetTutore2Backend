@@ -14,6 +14,8 @@ class Connection extends AbstractController
 {
     /**
      * @Route("/connection", name="connection", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
      */
     public function connection(Request $request): JsonResponse
     {

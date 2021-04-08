@@ -8,14 +8,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use PDO;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class Register extends AbstractController
 {
     /**
      * @Route("/register", name="register", methods={"POST"})
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function register(Request $request)
+    public function register(Request $request): JsonResponse
     {
         $dbname = Config::config('pdo_dbname');
         $host = Config::config('pdo_host');

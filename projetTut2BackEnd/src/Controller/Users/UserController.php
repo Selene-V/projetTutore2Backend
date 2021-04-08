@@ -101,9 +101,9 @@ class UserController extends AbstractController
     /**
      * @Route("/displayLibrary", name="display_library", methods={"POST"})
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      */
-    public function displayLibrary(Request $request): JsonResponse
+    public function displayLibrary(Request $request): Response
     {
 
         $requestContent = $request->getContent();
@@ -123,11 +123,11 @@ class UserController extends AbstractController
 
             $gamesByPage = 8;
             $page = $searchParams['page'];
-            if ($page < 1) {
-                $page = 1;
-            }
 
-            if ($page !== null) {
+            if ($page !== "null") {
+                if ($page < 1) {
+                    $page = 1;
+                }
                 $params = [
                     'index' => 'steam',
                     'size' => $gamesByPage,
@@ -180,19 +180,25 @@ class UserController extends AbstractController
                 array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
             }
 
-            unset($params['size']);
-            unset($params['page']);
-            unset($params['from']);
+            if ($page !== "null"){
+                unset($params['size']);
+                unset($params['page']);
+                unset($params['from']);
 
-            $totalGames = $this->client->count($params);
+                $totalGames = $this->client->count($params);
 
-            $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
+                $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
+            }
             return new JsonResponse($games);
         }
         return new Response(false);
     }
 
-    public function getToken(Request $request)
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function getToken(Request $request): array
     {
         $authorizationHeader = $request->headers->get('Authorization');
         $authorizationHeaderArray = explode(' ', $authorizationHeader);
@@ -202,7 +208,11 @@ class UserController extends AbstractController
         return $data;
     }
 
-    public function checkToken($data)
+    /**
+     * @param $data
+     * @return bool
+     */
+    public function checkToken($data): bool
     {
         if ($data['exp'] > time()) {
             return true;
