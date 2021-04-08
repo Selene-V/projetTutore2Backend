@@ -2,6 +2,7 @@
 
 namespace App\Controller\Users;
 
+use App\Config\Config;
 use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
@@ -16,7 +17,18 @@ class Register extends AbstractController
      */
     public function register(Request $request)
     {
-        $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
+        $dbname = Config::config('pdo_dbname');
+        $host = Config::config('pdo_host');
+        $user = Config::config('pdo_user');
+        $password = Config::config('pdo_password');
+
+        $dsn = sprintf(
+            'mysql:dbname=%s;host=%s',
+            $dbname,
+            $host
+        );
+
+        $bdd = new PDO($dsn, $user, $password);
 
         $requestContent = $request->getContent();
 
