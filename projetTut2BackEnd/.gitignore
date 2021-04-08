@@ -9,4 +9,5 @@
 /vendor/
 /maquette
 /projet_tut
+config.local.php
 ###< symfony/framework-bundle ###
