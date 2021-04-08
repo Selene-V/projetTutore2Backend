@@ -24,7 +24,7 @@ class Connection extends AbstractController
 
         $searchParams = $this->parseRequestContent($requestContent);
 
-        $email = $searchParams['email'];
+        $email = urldecode($searchParams['email']);
         $password = $searchParams['password'];
 
         $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");

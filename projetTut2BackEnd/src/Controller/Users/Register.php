@@ -22,7 +22,7 @@ class Register extends AbstractController
 
         $searchParams = $this->parseRequestContent($requestContent);
 
-        $email = htmlspecialchars($searchParams['email']);
+        $email = urldecode($searchParams['email']);
         $password = $searchParams['password'];
         $confPass = $searchParams['confPass'];
 
