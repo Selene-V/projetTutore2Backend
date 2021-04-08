@@ -2,39 +2,53 @@
 
 namespace App\Controller\Users;
 
+use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
+use App\Manager\TokenManager;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
-class Connection
+class Connection extends AbstractController
 {
     /**
      * @Route("/connection", name="connection", methods={"POST"})
-     * @return Response
      */
-    public function connection(): Response
+    public function connection(Request $request)
     {
+        $tokenManager = new TokenManager();
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
-        $email = $_POST['email'];
+        $requestContent = $request->getContent();
 
-        $req = $bdd->prepare("SELECT id, password FROM user WHERE email = ':email'");
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $email = $searchParams['email'];
+        $password = $searchParams['password'];
+
+        $req = $bdd->prepare("SELECT id, password FROM user WHERE email = :email");
         $req->execute(array(
             'email' => $email
         ));
         $result = $req->fetch();
 
         if (!$result) {
-            return new Response('Wrong login or password !');
+            return new JsonResponse('Wrong login or password !');
         } else {
-            $isPasswordCorrect = password_verify($_POST['password'], $result['password']);
+            $isPasswordCorrect = password_verify($password, $result['password']);
             if ($isPasswordCorrect) {
-                session_start();
-                $_SESSION['id'] = $result['id'];
-                $_SESSION['email'] = $email;
-                return new Response(true);
+                $token = $tokenManager->encode([
+                    "iss" => "http://projettutbackend2",
+                    "aud" => "http://projettutbackend2",
+                    "iat" => time(),
+                    "exp" => time() + 86400,
+                    "id" => $result['id']
+                ]);
+
+                return new JsonResponse($token);
             } else {
-                return new Response(false);
+                return new JsonResponse('Wrong login or password !');
             }
         }
     }

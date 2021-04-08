@@ -110,6 +110,9 @@
     "fig/link-util": {
         "version": "1.1.2"
     },
+    "firebase/php-jwt": {
+        "version": "v5.2.1"
+    },
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.3"
     },

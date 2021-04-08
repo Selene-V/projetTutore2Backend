@@ -2,31 +2,38 @@
 
 namespace App\Controller\Users;
 
+use App\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use PDO;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Register
+class Register extends AbstractController
 {
     /**
      * @Route("/register", name="register", methods={"POST"})
-     * @return Response
      */
-    public function register(): Response
+    public function register(Request $request)
     {
         $bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
 
-        $email = htmlspecialchars($_POST['email']);
-        $password = $_POST['password'];
-        $confPass = $_POST['confPass'];
-        if (!empty($_POST['email']) && !empty($_POST['password']) && !empty($_POST['confPass'])) {
+        $requestContent = $request->getContent();
+
+        $searchParams = $this->parseRequestContent($requestContent);
+
+        $email = htmlspecialchars($searchParams['email']);
+        $password = $searchParams['password'];
+        $confPass = $searchParams['confPass'];
+
+        if (!empty($email) && !empty($password) && !empty($confPass)) {
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $reqemail = $bdd->prepare("SELECT * FROM user WHERE email = ?");
                 $reqemail->execute(array($email));
                 $emailexist = $reqemail->rowCount();
                 if ($emailexist == 0) {
                     if ($password == $confPass) {
-                        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                        $password = password_hash($password, PASSWORD_DEFAULT);
                         $insertmbr = $bdd->prepare("INSERT INTO user(email, password) VALUES(?, ?)");
                         $insertmbr->execute(array($email, $password));
                     } else {
@@ -43,9 +50,9 @@ class Register
         }
 
         if (isset($error)) {
-            return new Response($error);
+            return new JsonResponse($error);
         } else {
-            return new Response(true);
+            return new JsonResponse(true);
         }
     }
 }
