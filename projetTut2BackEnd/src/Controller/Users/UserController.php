@@ -32,10 +32,10 @@ class UserController extends AbstractController
 
         $data = $this->getToken($request);
 
-        if ($this->checkToken($data, $searchParams['user'])) {
+        if ($this->checkToken($data)) {
             $select = $this->bdd->prepare("SELECT * FROM users_games WHERE user = :user AND game = :game");
 
-            $select->bindParam(':user', $searchParams['user'], PDO::PARAM_INT);
+            $select->bindParam(':user', $data['id'], PDO::PARAM_INT);
             $select->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
             $select->execute();
@@ -43,7 +43,7 @@ class UserController extends AbstractController
             if ($select->rowCount() === 0) { //On vérifie si la relation n'existe pas déjà
                 $req = $this->bdd->prepare("INSERT INTO users_games VALUES (:user, :game)");
 
-                $req->bindParam(':user', $searchParams['user'], PDO::PARAM_INT);
+                $req->bindParam(':user', $data['id'], PDO::PARAM_INT);
                 $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
                 if ($req->execute()) {
@@ -66,10 +66,10 @@ class UserController extends AbstractController
 
         $data = $this->getToken($request);
 
-        if ($this->checkToken($data, $searchParams['user'])) {
+        if ($this->checkToken($data)) {
             $req = $this->bdd->prepare("DELETE FROM users_games WHERE user = :user AND game = :game");
 
-            $req->bindParam(':user', $searchParams['user'], PDO::PARAM_INT);
+            $req->bindParam(':user', $data['id'], PDO::PARAM_INT);
             $req->bindParam(':game', $searchParams['game'], PDO::PARAM_INT);
 
             if ($req->execute()) {
@@ -93,11 +93,11 @@ class UserController extends AbstractController
 
         $data = $this->getToken($request);
 
-        if ($this->checkToken($data, $searchParams['user'])) {
+        if ($this->checkToken($data)) {
             $req = $this->bdd->prepare('SELECT game FROM users_games WHERE user = :user');
 
             $req->execute(array(
-                'user' => $searchParams['user']
+                'user' => $data['id']
             ));
 
             $resultSQL = $req->fetchAll();
@@ -165,9 +165,9 @@ class UserController extends AbstractController
         return $data;
     }
 
-    public function checkToken($data, $id)
+    public function checkToken($data)
     {
-        if ($data['exp'] > time() && $data['id'] === $id) {
+        if ($data['exp'] > time()) {
             return true;
         }
         return false;
