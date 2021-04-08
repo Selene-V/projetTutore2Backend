@@ -99,7 +99,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/displayLibrary", name="display_library", requirements={"page" = "\d+"}, methods={"POST"})
+     * @Route("/displayLibrary", name="display_library", methods={"POST"})
      * @param Request $request
      * @return JsonResponse
      */
@@ -170,9 +170,12 @@ class UserController extends AbstractController
 
                 $image = $this->createImage($idgame);
 
+                $description = $this->createDescription($idgame);
+
                 $game = new Game();
                 $game->hydrate($gameInfos['_source']['data']);
                 $game->setImage($image);
+                $game->setDescription($description);
                 $game->setId($gameInfos['_id']);
                 array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
             }
