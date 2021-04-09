@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mar. 06 avr. 2021 à 16:39
+-- Généré le : ven. 09 avr. 2021 à 13:59
 -- Version du serveur :  5.7.31
 -- Version de PHP : 7.4.9
 
@@ -33,14 +33,16 @@ CREATE TABLE IF NOT EXISTS `user` (
   `email` varchar(255) CHARACTER SET latin1 NOT NULL,
   `password` varchar(255) CHARACTER SET latin1 NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `user`
 --
 
 INSERT INTO `user` (`id`, `email`, `password`) VALUES
-(2, 'aze@a.fr', '$2y$10$nzp48FBPVB4Qnx4XqyUcE.yI6LktbjUKSQis9dmnIHBeWC8FgEtoC');
+(1, 'laroche.pierre@univ-lorraine.fr', '$2y$10$CaNd8sH53BrEhO0YJla5f.xc822gj9Gs417BirzT25KLDD2lQEFYe'),
+(2, 'ronin.a@sfeir.com', '$2y$10$3v0y9mmLnlbxYHbIOLlWdOr5LCeyPcYByvZztV.QMjc3nny3Zl6kO'),
+(3, 'pi.zamperini@gmail.com', '$2y$10$7dLzQTgMTQSYjDvVXovogO4ix9pxNwmIlqIePHoZYHkxPey8ULkPC');
 
 -- --------------------------------------------------------
 
@@ -53,15 +55,6 @@ CREATE TABLE IF NOT EXISTS `users_games` (
   `user` int(11) NOT NULL,
   `game` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Déchargement des données de la table `users_games`
---
-
-INSERT INTO `users_games` (`user`, `game`) VALUES
-(1, 10),
-(1, 8400),
-(1, 70);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
