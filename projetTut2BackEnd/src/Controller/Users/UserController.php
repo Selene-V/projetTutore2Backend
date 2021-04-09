@@ -2,7 +2,6 @@
 
 namespace App\Controller\Users;
 
-use App\Config\Config;
 use App\Controller\AbstractController;
 use App\Entity\Game;
 use App\Manager\TokenManager;
@@ -22,17 +21,7 @@ class UserController extends AbstractController
     public function __construct()
     {
         parent::__construct();
-        $dbname = Config::config('pdo_dbname');
-        $host = Config::config('pdo_host');
-        $user = Config::config('pdo_user');
-        $password = Config::config('pdo_password');
-
-        $dsn = sprintf(
-            'mysql:dbname=%s;host=%s',
-            $dbname,
-            $host
-        );
-        $this->bdd = new PDO($dsn, $user, $password);
+        $this->bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
     }
 
     /**
@@ -101,9 +90,9 @@ class UserController extends AbstractController
     /**
      * @Route("/displayLibrary", name="display_library", requirements={"page" = "\d+"}, methods={"POST"})
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function displayLibrary(Request $request): Response
+    public function displayLibrary(Request $request): JsonResponse
     {
 
         $requestContent = $request->getContent();
@@ -121,24 +110,41 @@ class UserController extends AbstractController
 
             $resultSQL = $req->fetchAll();
 
+            if (empty($resultSQL)) {
+                return new JsonResponse(null);
+            }
+
             $gamesByPage = 8;
             $page = $searchParams['page'];
-
             if ($page < 1) {
                 $page = 1;
             }
-            $params = [
-                'index' => 'steam',
-                'size' => $gamesByPage,
-                'from' => ($page - 1) * $gamesByPage,
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'should' => [],
+
+            if ($page !== null) {
+                $params = [
+                    'index' => 'steam',
+                    'size' => $gamesByPage,
+                    'from' => ($page - 1) * $gamesByPage,
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'should' => [],
+                            ],
                         ],
                     ],
-                ],
-            ];
+                ];
+            } else {
+                $params = [
+                    'index' => 'steam',
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'should' => [],
+                            ],
+                        ],
+                    ],
+                ];
+            }
 
 
             $queryParams = [];
@@ -157,12 +163,9 @@ class UserController extends AbstractController
 
                 $image = $this->createImage($idgame);
 
-                $description = $this->createDescription($idgame);
-
                 $game = new Game();
                 $game->hydrate($gameInfos['_source']['data']);
                 $game->setImage($image);
-                $game->setDescription($description);
                 $game->setId($gameInfos['_id']);
                 array_push($games['games'], json_decode($this->serializer->serialize($game, 'json')));
             }
@@ -174,47 +177,13 @@ class UserController extends AbstractController
             $totalGames = $this->client->count($params);
 
             $games['nbPages'] = ceil($totalGames['count'] / $gamesByPage);
+
             return new JsonResponse($games);
         }
         return new Response(false);
     }
 
-    /**
-     * @Route("/libraryContains", name="library_contains", methods={"POST"})
-     * @param Request $request
-     * @return Response
-     */
-    public function libraryContains(Request $request): Response
-    {
-
-        $requestContent = $request->getContent();
-
-        $searchParams = $this->parseRequestContent($requestContent);
-
-        $data = $this->getToken($request);
-
-        if ($this->checkToken($data)) {
-            $req = $this->bdd->prepare('SELECT game FROM users_games WHERE user = :user AND game = :game');
-
-            $req->execute(array(
-                'user' => $data['id'],
-                'game' => $searchParams['appid']
-            ));
-
-            $resultSQL = $req->fetch();
-        }
-        if (!$resultSQL){
-            return new Response($resultSQL);
-        }else {
-            return new Response(true);
-        }
-    }
-
-            /**
-     * @param Request $request
-     * @return array
-     */
-    public function getToken(Request $request): array
+    public function getToken(Request $request)
     {
         $authorizationHeader = $request->headers->get('Authorization');
         $authorizationHeaderArray = explode(' ', $authorizationHeader);
@@ -224,11 +193,7 @@ class UserController extends AbstractController
         return $data;
     }
 
-    /**
-     * @param $data
-     * @return bool
-     */
-    public function checkToken($data): bool
+    public function checkToken($data)
     {
         if ($data['exp'] > time()) {
             return true;
