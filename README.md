@@ -23,7 +23,16 @@ Manuel d'installation :
 
 6) Importer la base de données grâce au fichier contenu dans le dossier SQL
 
+7) faire un fichier config.local.php contenant ceci avec vos informations de connexion à votre base de données :
 
+<?php
+
+return [
+    'pdo_dbname' => 'projettutore2',
+    'pdo_host' => '127.0.0.1',
+    'pdo_user' => 'root',
+    'pdo_password' => '',
+];
 
 
 Comptes existants dans la db :
