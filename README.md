@@ -23,7 +23,7 @@ Manuel d'installation :
 
 6) Importer la base de données grâce au fichier contenu dans le dossier SQL
 
-7) faire un fichier config.local.php contenant ceci avec vos informations de connexion à votre base de données :
+7) Faire un fichier config.local.php dans le dossier "projetTut2BackEnd" contenant ceci avec vos informations de connexion à votre base de données :
 
 <?php
 
