@@ -2,6 +2,7 @@
 
 namespace App\Controller\Users;
 
+use App\Config\Config;
 use App\Controller\AbstractController;
 use App\Entity\Game;
 use App\Manager\TokenManager;
@@ -21,7 +22,19 @@ class UserController extends AbstractController
     public function __construct()
     {
         parent::__construct();
-        $this->bdd = new PDO('mysql:host=127.0.0.1;dbname=projettutore2', 'root', '');
+
+        $dbname = Config::config('pdo_dbname');
+        $host = Config::config('pdo_host');
+        $user = Config::config('pdo_user');
+        $password = Config::config('pdo_password');
+
+        $dsn = sprintf(
+            'mysql:dbname=%s;host=%s',
+            $dbname,
+            $host
+        );
+
+        $this->bdd = new PDO($dsn, $user, $password);
     }
 
     /**
