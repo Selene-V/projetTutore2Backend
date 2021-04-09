@@ -124,7 +124,7 @@ class UserController extends AbstractController
             $resultSQL = $req->fetchAll();
 
             if (empty($resultSQL)) {
-                return new JsonResponse(null);
+                return new JsonResponse(false);
             }
 
             $gamesByPage = 8;
